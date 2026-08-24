@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Business - Super Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <h4 class="fw-bold mb-0">
+        <i class="bi bi-pencil-square me-2 text-primary"></i>Edit Business
+    </h4>
+    <a href="{{ url_for('super_admin_dashboard') }}" class="btn btn-outline-secondary btn-sm ms-3">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-building me-2"></i>{{ business.name }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <!-- Business Name -->
+                    <div class="mb-3">
+                        <label class="form-label">Business Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" value="{{ business.name }}" required>
+                    </div>
+                    
+                    <!-- Tagline -->
+                    <div class="mb-3">
+                        <label class="form-label">Tagline</label>
+                        <input type="text" name="tagline" class="form-control" value="{{ business.tagline or '' }}">
+                    </div>
+                    
+                    <!-- Contact Details -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Address</label>
+                                <input type="text" name="address" class="form-control" value="{{ business.address or '' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Phone</label>
+                                <input type="text" name="phone" class="form-control" value="{{ business.phone or '' }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" value="{{ business.email or '' }}">
+                    </div>
+                    
+                    <!-- Brand Colors -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Primary Color</label>
+                                <div class="input-group">
+                                    <input type="color" name="primary_color" class="form-control form-control-color" value="{{ business.primary_color or '#0000ff' }}" style="width: 60px; padding: 3px;">
+                                    <input type="text" class="form-control" value="{{ business.primary_color or '#0000ff' }}" id="primary_color_text">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Secondary Color</label>
+                                <div class="input-group">
+                                    <input type="color" name="secondary_color" class="form-control form-control-color" value="{{ business.secondary_color or '#fa4659' }}" style="width: 60px; padding: 3px;">
+                                    <input type="text" class="form-control" value="{{ business.secondary_color or '#fa4659' }}" id="secondary_color_text">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Logo -->
+                    <div class="mb-3">
+                        <label class="form-label">Business Logo</label>
+                        {% if business.logo_data %}
+                            <div class="mb-2">
+                                <img src="{{ business.logo_data }}" alt="{{ business.name }} logo" style="max-height: 80px; border: 1px solid #ddd; border-radius: 8px; padding: 5px;">
+                            </div>
+                            <div class="form-check mb-2">
+                                <input type="checkbox" name="remove_logo" class="form-check-input" id="remove_logo">
+                                <label class="form-check-label text-danger" for="remove_logo">Remove current logo</label>
+                            </div>
+                        {% endif %}
+                        <input type="file" name="logo" class="form-control" accept="image/*">
+                        <small class="text-muted">Upload a new logo to replace the current one (PNG, JPG, SVG - max 2MB)</small>
+                    </div>
+                    
+                    <!-- Products -->
+                    <div class="mb-3">
+                        <label class="form-label">Products/Services</label>
+                        <input type="text" name="products" class="form-control" value="{{ products }}">
+                        <small class="text-muted">Separate products with commas</small>
+                    </div>
+                    
+                    <!-- Expense Items -->
+                    <div class="mb-3">
+                        <label class="form-label">Expense Categories</label>
+                        <input type="text" name="expense_items" class="form-control" value="{{ expense_items }}">
+                        <small class="text-muted">Separate expense categories with commas</small>
+                    </div>
+                    
+                    <!-- Active Status -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" name="is_active" class="form-check-input" id="is_active" {% if business.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">Active</label>
+                            <small class="d-block text-muted">Inactive businesses will not appear in dropdowns for new users</small>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-save me-2"></i> Update Business
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Preview Card -->
+    <div class="col-lg-4">
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-eye me-2"></i>Brand Preview</h5>
+            </div>
+            <div class="card-body text-center">
+                <div id="brand-preview" style="background: linear-gradient(135deg, {{ business.primary_color or '#0000ff' }}, {{ business.secondary_color or '#fa4659' }}); padding: 20px; border-radius: 12px; color: white;">
+                    {% if business.logo_data %}
+                        <img src="{{ business.logo_data }}" alt="{{ business.name }}" style="max-height: 80px; margin-bottom: 10px; border-radius: 8px;">
+                    {% else %}
+                        <div style="font-size: 48px; margin-bottom: 10px;">🏪</div>
+                    {% endif %}
+                    <h4 class="mb-0">{{ business.name }}</h4>
+                    <small>{{ business.tagline or 'Your Tagline Here' }}</small>
+                </div>
+                <div class="mt-3">
+                    <span class="badge" style="background: {{ business.primary_color or '#0000ff' }}; color: white;">Primary</span>
+                    <span class="badge" style="background: {{ business.secondary_color or '#fa4659' }}; color: white;">Secondary</span>
+                </div>
+                <p class="text-muted small mt-2">Preview updates when you save the form</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Sync color picker with text input
+document.querySelector('input[name="primary_color"]').addEventListener('input', function() {
+    document.getElementById('primary_color_text').value = this.value;
+});
+document.querySelector('input[name="secondary_color"]').addEventListener('input', function() {
+    document.getElementById('secondary_color_text').value = this.value;
+});
+</script>
+{% endblock %}

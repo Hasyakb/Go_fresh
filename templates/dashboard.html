@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - {{ business.name }} Record Book{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <h4 class="fw-bold mb-0">
+        <i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard
+    </h4>
+    <span class="badge bg-primary ms-3">{{ today.strftime('%B %d, %Y') }}</span>
+</div>
+
+<!-- ===== CAPITAL STAT CARDS (Global - Same for all users) ===== -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4 col-sm-12">
+        <div class="stat-card stat-blue">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="stat-label">Today's Capital</span>
+                <i class="bi bi-coin stat-icon"></i>
+            </div>
+            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_capital_today) }}</div>
+            <div class="stat-sub">Capital added today</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-12">
+        <div class="stat-card stat-royal">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="stat-label">This Month's Capital</span>
+                <i class="bi bi-calendar3 stat-icon"></i>
+            </div>
+            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_capital_month) }}</div>
+            <div class="stat-sub">{{ today.strftime('%B %Y') }}</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-12">
+        <div class="stat-card stat-slate">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="stat-label">Total Capital (All Time)</span>
+                <i class="bi bi-bank stat-icon"></i>
+            </div>
+            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_capital_all_time) }}</div>
+            <div class="stat-sub">Lifetime capital</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== PRODUCTION & EXPENSE STATS (User-specific) ===== -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #059669, #10b981);">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="stat-label">Today's Production</span>
+                <i class="bi bi-box-seam stat-icon"></i>
+            </div>
+            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_production_today) }}</div>
+            <div class="stat-sub">Your revenue today</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #dc2626, #ef4444);">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="stat-label">Today's Expenses</span>
+                <i class="bi bi-cart-dash stat-icon"></i>
+            </div>
+            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_expense_today) }}</div>
+            <div class="stat-sub">Your costs today</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #7c3aed, #8b5cf6);">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="stat-label">This Month's Production</span>
+                <i class="bi bi-calendar-range stat-icon"></i>
+            </div>
+            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_production_month) }}</div>
+            <div class="stat-sub">{{ today.strftime('%B %Y') }}</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="stat-label">This Month's Expenses</span>
+                <i class="bi bi-calendar-range stat-icon"></i>
+            </div>
+            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_expense_month) }}</div>
+            <div class="stat-sub">{{ today.strftime('%B %Y') }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TODAY'S CAPITAL ENTRIES (Global - All users can see) ===== -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-coin me-2"></i>Today's Capital Entries</h5>
+        <span class="badge bg-white text-dark">{{ capitals_today|length }} entr{{ 'y' if capitals_today|length == 1 else 'ies' }}</span>
+    </div>
+    <div class="card-body">
+        {% if capitals_today %}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Added By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in capitals_today %}
+                            <tr>
+                                <td>{{ c.date.strftime('%d/%m/%Y') }}</td>
+                                <td class="fw-semibold">&#8358;{{ "{:,.2f}".format(c.amount) }}</td>
+                                <td><i class="bi bi-person-circle me-1 text-muted"></i>{{ c.admin.username }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-info">
+                            <td><strong>Total</strong></td>
+                            <td><strong>&#8358;{{ "{:,.2f}".format(capitals_today|sum(attribute='amount')) }}</strong></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted text-center mb-0 py-3">
+                <i class="bi bi-inbox me-1"></i>No capital entries for today.
+            </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ===== TODAY'S EXPENSE BREAKDOWN (User-specific) ===== -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Today's Expense Breakdown</h5>
+        <span class="badge bg-white text-dark">{{ expenses_today|length }} item{{ 's' if expenses_today|length != 1 }}</span>
+    </div>
+    <div class="card-body">
+        {% if expenses_today %}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in expenses_today %}
+                            <tr>
+                                <td>{{ e.item }}</td>
+                                <td class="fw-semibold money-out">&#8358;{{ "{:,.2f}".format(e.cost) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-danger">
+                            <td><strong>Total Today's Expenses</strong></td>
+                            <td><strong>&#8358;{{ "{:,.2f}".format(expenses_today|sum(attribute='cost')) }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted text-center mb-0 py-3">
+                <i class="bi bi-inbox me-1"></i>No expenses recorded for today.
+            </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ===== RECENT PRODUCTIONS & EXPENSES (User-specific) ===== -->
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Recent Productions</h5>
+                <a href="{{ url_for('add_entry') }}" class="btn btn-light btn-sm">
+                    <i class="bi bi-plus"></i> Add
+                </a>
+            </div>
+            <div class="card-body">
+                {% if productions %}
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Note</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in productions %}
+                                    <tr>
+                                        <td>{{ p.date.strftime('%d/%m/%Y') }}</td>
+                                        <td class="fw-semibold money-in">&#8358;{{ "{:,.2f}".format(p.amount) }}</td>
+                                        <td class="text-muted">{{ p.note or '-' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-success">
+                                    <td><strong>Total (Last 10)</strong></td>
+                                    <td><strong>&#8358;{{ "{:,.2f}".format(productions|sum(attribute='amount')) }}</strong></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3 mb-0">
+                        <i class="bi bi-inbox me-1"></i>No productions recorded yet.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-dash-circle me-2"></i>Recent Expenses</h5>
+                <a href="{{ url_for('add_entry') }}" class="btn btn-light btn-sm">
+                    <i class="bi bi-plus"></i> Add
+                </a>
+            </div>
+            <div class="card-body">
+                {% if expenses %}
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Item</th>
+                                    <th>Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for e in expenses %}
+                                    <tr>
+                                        <td>{{ e.date.strftime('%d/%m/%Y') }}</td>
+                                        <td>{{ e.item }}</td>
+                                        <td class="fw-semibold money-out">&#8358;{{ "{:,.2f}".format(e.cost) }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-danger">
+                                    <td><strong>Total (Last 10)</strong></td>
+                                    <td></td>
+                                    <td><strong>&#8358;{{ "{:,.2f}".format(expenses|sum(attribute='cost')) }}</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3 mb-0">
+                        <i class="bi bi-inbox me-1"></i>No expenses recorded yet.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== EXPENSES BY DATE (User-specific) ===== -->
+<div class="card shadow-sm mt-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="bi bi-calendar2-week me-2"></i>Expenses by Date</h5>
+    </div>
+    <div class="card-body">
+        {% if expenses_by_date %}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Number of Items</th>
+                            <th>Total Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in expenses_by_date %}
+                            <tr>
+                                <td>{{ e.date.strftime('%B %d, %Y') }}</td>
+                                <td><span class="badge bg-secondary">{{ e.count }}</span></td>
+                                <td class="fw-semibold">&#8358;{{ "{:,.2f}".format(e.total_cost) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-info">
+                            <td><strong>Total</strong></td>
+                            <td><strong>{{ expenses_by_date|sum(attribute='count') }}</strong></td>
+                            <td><strong>&#8358;{{ "{:,.2f}".format(expenses_by_date|sum(attribute='total_cost')) }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted text-center mb-0 py-3">
+                <i class="bi bi-inbox me-1"></i>No expenses recorded yet.
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

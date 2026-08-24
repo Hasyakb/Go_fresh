@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Create Admin - Super Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <h4 class="fw-bold mb-0">
+        <i class="bi bi-person-plus me-2 text-danger"></i>Create Admin User
+    </h4>
+    <a href="{{ url_for('super_admin_dashboard') }}" class="btn btn-outline-secondary btn-sm ms-3">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>Create Admin or User</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Super Admin</strong> can create both <strong>Admins</strong> (with business management access) and 
+                    <strong>Regular Users</strong> (with limited access).
+                </div>
+                
+                <form method="POST">
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label class="form-label">Username <span class="text-danger">*</span></label>
+                        <input type="text" name="username" class="form-control" placeholder="Choose a username" required>
+                    </div>
+                    
+                    <!-- Password -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Password <span class="text-danger">*</span></label>
+                                <input type="password" name="password" class="form-control" placeholder="Min 6 characters" required minlength="6">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                <input type="password" name="confirm_password" class="form-control" placeholder="Confirm password" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Assign to Business -->
+                    <div class="mb-3">
+                        <label class="form-label">Assign to Business <span class="text-danger">*</span></label>
+                        <select name="business_id" class="form-select" required>
+                            <option value="">Select a business</option>
+                            {% for b in businesses %}
+                                <option value="{{ b.id }}">{{ b.name }} {% if b.tagline %}({{ b.tagline }}){% endif %}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">The user will be assigned to this business and see only its data</small>
+                    </div>
+                    
+                    <!-- Admin Privileges -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" name="is_admin" class="form-check-input" id="is_admin">
+                            <label class="form-check-label" for="is_admin">
+                                <strong>Admin Privileges</strong>
+                            </label>
+                            <small class="d-block text-muted mt-1">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <strong>Admin:</strong> Can manage users, add capital/labour, view reports, and manage business operations.<br>
+                                <strong>User:</strong> Can only add productions and expenses.
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="bi bi-person-plus me-2"></i> Create User
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ url_for('super_admin_dashboard') }}" class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-arrow-left me-2"></i> Cancel
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

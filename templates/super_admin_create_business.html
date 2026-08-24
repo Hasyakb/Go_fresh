@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Create Business - Super Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <h4 class="fw-bold mb-0">
+        <i class="bi bi-building-add me-2 text-danger"></i>Create New Business
+    </h4>
+    <a href="{{ url_for('super_admin_dashboard') }}" class="btn btn-outline-secondary btn-sm ms-3">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-building me-2"></i>Business Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <!-- Business Name -->
+                    <div class="mb-3">
+                        <label class="form-label">Business Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" placeholder="Enter business name" required>
+                    </div>
+                    
+                    <!-- Tagline -->
+                    <div class="mb-3">
+                        <label class="form-label">Tagline</label>
+                        <input type="text" name="tagline" class="form-control" placeholder="e.g., Milkshake, Fast Food, etc.">
+                    </div>
+                    
+                    <!-- Contact Details -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Address</label>
+                                <input type="text" name="address" class="form-control" placeholder="Business address">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Phone</label>
+                                <input type="text" name="phone" class="form-control" placeholder="Phone number">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="Email address">
+                    </div>
+                    
+                    <!-- Brand Colors -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Primary Color</label>
+                                <div class="input-group">
+                                    <input type="color" name="primary_color" class="form-control form-control-color" value="#0000ff" style="width: 60px; padding: 3px;">
+                                    <input type="text" class="form-control" value="#0000ff" id="primary_color_text" placeholder="#0000ff">
+                                </div>
+                                <small class="text-muted">Main brand color (default: blue)</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Secondary Color</label>
+                                <div class="input-group">
+                                    <input type="color" name="secondary_color" class="form-control form-control-color" value="#fa4659" style="width: 60px; padding: 3px;">
+                                    <input type="text" class="form-control" value="#fa4659" id="secondary_color_text" placeholder="#fa4659">
+                                </div>
+                                <small class="text-muted">Accent color (default: watermelon red)</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Logo Upload -->
+                    <div class="mb-3">
+                        <label class="form-label">Business Logo</label>
+                        <input type="file" name="logo" class="form-control" accept="image/*">
+                        <small class="text-muted">Upload a logo for your business (PNG, JPG, SVG - max 2MB)</small>
+                    </div>
+                    
+                    <!-- Products -->
+                    <div class="mb-3">
+                        <label class="form-label">Products/Services</label>
+                        <input type="text" name="products" class="form-control" placeholder="Banana Shakaa, Pineapple Passion, WaterMelon Wonder">
+                        <small class="text-muted">Separate products with commas</small>
+                    </div>
+                    
+                    <!-- Expense Items -->
+                    <div class="mb-3">
+                        <label class="form-label">Expense Categories</label>
+                        <input type="text" name="expense_items" class="form-control" placeholder="Sugar, Banana, Watermelon, etc.">
+                        <small class="text-muted">Separate expense categories with commas. Leave blank for default list.</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="bi bi-plus-circle me-2"></i> Create Business
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Sync color picker with text input
+document.querySelector('input[name="primary_color"]').addEventListener('input', function() {
+    document.getElementById('primary_color_text').value = this.value;
+});
+document.querySelector('input[name="secondary_color"]').addEventListener('input', function() {
+    document.getElementById('secondary_color_text').value = this.value;
+});
+</script>
+{% endblock %}

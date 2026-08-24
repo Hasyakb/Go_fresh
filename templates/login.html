@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Login - {{ business.name }} Record Book{% endblock %}
+
+{% block content %}
+<div class="login-wrap">
+    <div class="card shadow overflow-hidden" style="max-width: 820px; width: 100%;">
+        <div class="row g-0">
+            <div class="col-md-5 login-hero d-none d-md-flex">
+                <div>
+                    <span class="gf-logo gf-logo-lg mb-3">{% include 'logo.html' %}</span>
+                    <h2 class="fw-bold mb-1">{{ business.name }}</h2>
+                    <p class="text-uppercase small mb-4" style="letter-spacing: 0.25em; opacity: 0.75;">
+                        {{ business.tagline }}
+                    </p>
+                    <p class="mb-1"><i class="bi bi-journal-bookmark me-2"></i>Electronic Record Book</p>
+                    <p class="mb-0 small opacity-75">
+                        Track productions, expenses, capital and labour — all in one place.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-7">
+                <div class="card-body p-4 p-lg-5">
+                    <h4 class="fw-bold mb-1">Welcome back</h4>
+                    <p class="text-muted small mb-4">Sign in to continue to your record book.</p>
+                    <form method="POST" action="{{ url_for('login') }}">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ form.username.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>
+                                {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), placeholder="Enter username") }}
+                            </div>
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">{{ form.username.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-4">
+                            {{ form.password.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>
+                                {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Enter password") }}
+                            </div>
+                            {% if form.password.errors %}
+                                <div class="invalid-feedback d-block">{{ form.password.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        {{ form.submit(class="btn btn-primary w-100 py-2") }}
+                    </form>
+                    <hr class="my-4">
+                    <p class="text-center text-muted small mb-0">
+                        <i class="bi bi-shield-lock me-1"></i> Only an Admin can create new user accounts.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

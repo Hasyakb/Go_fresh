@@ -1,0 +1,464 @@
+{% extends "base.html" %}
+
+{% block title %}Profit Breakdown - Admin{% endblock %}
+{% block print_brand %}{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <a href="{{ url_for('admin_index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Admin Dashboard
+        </a>
+        <button class="btn btn-primary float-end" onclick="window.print()">
+            <i class="bi bi-printer"></i> Print Report
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm mb-4 no-print">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="bi bi-graph-up-arrow me-2"></i>Profit Breakdown</h4>
+                <div>
+                    <button class="btn btn-light btn-sm me-2" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Print
+                    </button>
+                    <button class="btn btn-light btn-sm" id="export-pdf">
+                        <i class="bi bi-file-pdf"></i> PDF
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin_report') }}" id="report-form">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Period Selection -->
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            {{ form.period.label(class="form-label") }}
+                            {{ form.period(class="form-select" + (" is-invalid" if form.period.errors else ""), id="period-select") }}
+                            {% if form.period.errors %}
+                                <div class="invalid-feedback">{{ form.period.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3" id="date-from-field" style="display:none;">
+                            {{ form.date_from.label(class="form-label") }}
+                            {{ form.date_from(class="form-control" + (" is-invalid" if form.date_from.errors else ""), type="date") }}
+                            {% if form.date_from.errors %}
+                                <div class="invalid-feedback">{{ form.date_from.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3" id="date-to-field" style="display:none;">
+                            {{ form.date_to.label(class="form-label") }}
+                            {{ form.date_to(class="form-control" + (" is-invalid" if form.date_to.errors else ""), type="date") }}
+                            {% if form.date_to.errors %}
+                                <div class="invalid-feedback">{{ form.date_to.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if report_data %}
+<div class="row" id="report-content">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center no-print">
+                <h5 class="mb-0">
+                    <i class="bi bi-graph-up-arrow me-2"></i>
+                    Profit Breakdown: {{ period_filter }}
+                </h5>
+                <span class="badge bg-light text-dark">
+                    Generated: {{ now.strftime('%Y-%m-%d %H:%M') if now else '' }}
+                </span>
+            </div>
+            <div class="card-body" id="report-body">
+                <!-- Business Header -->
+                <div class="text-center mb-4 report-header">
+                    <span class="gf-logo gf-logo-lg mx-auto mb-2 d-inline-block">{% include 'logo.html' %}</span>
+                    <h2 class="display-6 fw-bold text-primary mb-0">{{ business.name }}</h2>
+                    <p class="text-uppercase small mb-3" style="letter-spacing: 0.28em; color: var(--gf-red);">{{ business.tagline }}</p>
+                    <p class="mb-1">
+                        <i class="bi bi-geo-alt me-1"></i>{{ business.address }}
+                    </p>
+                    <p class="mb-0">
+                        <i class="bi bi-telephone me-1"></i>{{ business.phone }}
+                    </p>
+                    <hr>
+                    <h5>Profit Breakdown Report</h5>
+                    <p class="text-muted">{{ period_filter }}</p>
+                </div>
+
+                <!-- Profit Summary - Big and Clear -->
+                <div class="row mb-4">
+                    <div class="col-lg-8 mx-auto">
+                        <div class="card {% if report_data.profit >= 0 %}border-success{% else %}border-danger{% endif %} shadow-lg border-2">
+                            <div class="card-body text-center py-4">
+                                <h5 class="text-muted">NET PROFIT / LOSS</h5>
+                                <h1 class="display-2 fw-bold {% if report_data.profit >= 0 %}money-in{% else %}money-out{% endif %}">
+                                    {% if report_data.profit >= 0 %}+{% endif %}&#8358;{{ "{:,.2f}".format(report_data.profit) }}
+                                </h1>
+                                <p class="text-muted">
+                                    {% if report_data.profit >= 0 %}
+                                        <i class="bi bi-arrow-up-circle-fill money-in"></i> Profit
+                                    {% else %}
+                                        <i class="bi bi-arrow-down-circle-fill money-out"></i> Loss
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Metrics -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4 col-6">
+                        <div class="stat-card stat-blue">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="stat-label"><i class="bi bi-box-seam me-1"></i>Productions</span>
+                            </div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(report_data.total_productions) }}</div>
+                            <div class="stat-sub">Revenue</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <div class="stat-card stat-royal">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="stat-label"><i class="bi bi-bank me-1"></i>Capital</span>
+                            </div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(report_data.total_capital) }}</div>
+                            <div class="stat-sub">Investment</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <div class="stat-card stat-blush">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="stat-label"><i class="bi bi-people me-1"></i>Labour</span>
+                            </div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(report_data.total_labour) }}</div>
+                            <div class="stat-sub">Staff Cost</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profit Calculation Breakdown -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <h6 class="mb-0"><i class="bi bi-calculator me-2"></i>Profit Calculation Breakdown</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8 mx-auto">
+                                        <table class="table table-bordered table-lg">
+                                            <tr class="table-success">
+                                                <td><strong>Total Productions (Revenue)</strong></td>
+                                                <td class="text-end">₦{{ "%.2f"|format(report_data.total_productions) }}</td>
+                                            </tr>
+                                            <tr class="table-info">
+                                                <td><strong>Total Capital (Investment)</strong></td>
+                                                <td class="text-end money-out">- ₦{{ "{:,.2f}".format(report_data.total_capital) }}</td>
+                                            </tr>
+                                            <tr class="table-warning">
+                                                <td><strong>Total Labour (Staff Cost)</strong></td>
+                                                <td class="text-end money-out">- ₦{{ "{:,.2f}".format(report_data.total_labour) }}</td>
+                                            </tr>
+                                            <tr class="table-secondary">
+                                                <td><strong>Total Expenses (Operations)</strong></td>
+                                                <td class="text-end text-muted">(Not included in profit calculation)</td>
+                                            </tr>
+                                            <tr class="table-{% if report_data.profit >= 0 %}success{% else %}danger{% endif %}">
+                                                <td><strong>NET PROFIT / LOSS</strong></td>
+                                                <td class="text-end fw-bold">
+                                                    {% if report_data.profit >= 0 %}+{% endif %}₦{{ "%.2f"|format(report_data.profit) }}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-8 mx-auto">
+                                        <div class="alert alert-info">
+                                            <h6><i class="bi bi-info-circle me-2"></i>Profit Formula</h6>
+                                            <p class="mb-0">
+                                                <strong>Profit</strong> = Total Productions - Total Capital - Total Labour
+                                            </p>
+                                            <hr>
+                                            <p class="mb-0">
+                                                ₦{{ "{:,.2f}".format(report_data.total_productions) }} - ₦{{ "{:,.2f}".format(report_data.total_capital) }} - ₦{{ "{:,.2f}".format(report_data.total_labour) }}
+                                                = <strong class="{% if report_data.profit >= 0 %}money-in{% else %}money-out{% endif %}">
+                                                    {% if report_data.profit >= 0 %}+{% endif %}&#8358;{{ "{:,.2f}".format(report_data.profit) }}
+                                                </strong>
+                                            </p>
+                                            <hr>
+                                            <p class="mb-0 text-muted small">
+                                                <i class="bi bi-info-circle"></i> Total Expenses (₦{{ "%.2f"|format(report_data.total_expenses) }}) are recorded for reference but NOT subtracted from profit.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Profit Breakdown (if grouped by date) – screen only -->
+                {% if report_data.grouped_data and report_data.group_by == 'date' %}
+                <div class="row mb-4 no-print">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0"><i class="bi bi-calendar3 me-2"></i>Daily Profit Breakdown</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Productions</th>
+                                                <th>Capital</th>
+                                                <th>Labour</th>
+                                                <th>Daily Profit</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% set date_keys = report_data.grouped_data.productions.keys()|sort %}
+                                            {% for date_key in date_keys %}
+                                                {% set daily_prod = report_data.grouped_data.productions[date_key]|sum(attribute='amount') %}
+                                                {% set daily_cap = report_data.grouped_data.capital[date_key]|sum(attribute='amount') if report_data.grouped_data.capital[date_key] else 0 %}
+                                                {% set daily_lab = report_data.grouped_data.labour[date_key]|sum(attribute='amount') if report_data.grouped_data.labour[date_key] else 0 %}
+                                                {% set daily_profit = daily_prod - daily_cap - daily_lab %}
+                                                <tr>
+                                                    <td>{{ date_key }}</td>
+                                                    <td>₦{{ "%.2f"|format(daily_prod) }}</td>
+                                                    <td>₦{{ "%.2f"|format(daily_cap) }}</td>
+                                                    <td>₦{{ "%.2f"|format(daily_lab) }}</td>
+                                                    <td class="fw-bold {% if daily_profit >= 0 %}money-in{% else %}money-out{% endif %}">
+                                                        {% if daily_profit >= 0 %}+{% endif %}&#8358;{{ "{:,.2f}".format(daily_profit) }}
+                                                    </td>
+                                                    <td>
+                                                        {% if daily_profit >= 0 %}
+                                                            <span class="badge bg-success">Profit</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">Loss</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                            <tr class="table-info">
+                                                <td><strong>Total</strong></td>
+                                                <td><strong>₦{{ "%.2f"|format(report_data.total_productions) }}</strong></td>
+                                                <td><strong>₦{{ "%.2f"|format(report_data.total_capital) }}</strong></td>
+                                                <td><strong>₦{{ "%.2f"|format(report_data.total_labour) }}</strong></td>
+                                                <td class="fw-bold {% if report_data.profit >= 0 %}money-in{% else %}money-out{% endif %}">
+                                                    {% if report_data.profit >= 0 %}+{% endif %}&#8358;{{ "{:,.2f}".format(report_data.profit) }}
+                                                </td>
+                                                <td></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Footer -->
+                <div class="text-center text-muted mt-4 report-footer">
+                    <hr>
+                    <small>
+                        <i class="bi bi-printer"></i> 
+                        Generated on {{ now.strftime('%Y-%m-%d %H:%M') if now else '' }} | 
+                        GO-FRESH Milkshake © {{ now.year if now else '' }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+/* screen helpers */
+.report-header { display: block; }
+.report-footer { display: block; }
+
+.table-lg td {
+    padding: 15px;
+    font-size: 16px;
+}
+
+/* ===== One-page A4 print: Profit Calculation Breakdown ===== */
+@media print {
+    @page { size: A4 portrait; margin: 8mm; }
+
+    /* hide chrome and everything outside the printable report
+       (.no-print = filter card, screen headers, daily breakdown) */
+    footer, .btn, form, .no-print { display: none !important; }
+
+    html, body {
+        background: #fff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 10px;
+    }
+    main.container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* keep the brand colors in the printout */
+    .stat-card, .card-header, .table-success, .table-info,
+    .table-warning, .table-secondary, .alert-info {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* ---- letterhead ---- */
+    .report-header { margin-bottom: 6px !important; }
+    .report-header .gf-logo,
+    .report-header svg {
+        width: 34px !important;
+        height: 34px !important;
+        margin-bottom: 2px !important;
+    }
+    .report-header h2.display-6 { font-size: 17px !important; margin-bottom: 0 !important; }
+    .report-header p { font-size: 9px !important; margin-bottom: 1px !important; }
+    .report-header hr { margin: 4px 0 !important; }
+
+    /* ---- spacing compression ---- */
+    .mb-4 { margin-bottom: 6px !important; }
+    .mt-4 { margin-top: 6px !important; }
+    .row.g-3 { --bs-gutter-x: 5px; --bs-gutter-y: 5px; }
+
+    /* ---- net profit hero ---- */
+    .display-2 { font-size: 30px !important; }
+    .py-4 { padding-top: 6px !important; padding-bottom: 6px !important; }
+
+    /* ---- metric stat cards ---- */
+    .stat-card {
+        padding: 5px 8px !important;
+        border-radius: 6px !important;
+        box-shadow: none !important;
+        animation: none !important;
+        break-inside: avoid;
+    }
+    .stat-card::after { display: none; }
+    .stat-label { font-size: 7.5px !important; margin-bottom: 0 !important; }
+    .stat-value { font-size: 13px !important; }
+    .stat-sub { font-size: 7.5px !important; }
+
+    /* ---- cards & tables ---- */
+    .card {
+        border-radius: 6px !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+    .card-body { padding: 6px 8px !important; }
+    .table-lg td { padding: 4px 6px !important; font-size: 10px !important; }
+    .table-bordered td { border-color: #dee2e6 !important; }
+
+    /* ---- formula note ---- */
+    .alert-info { padding: 5px 8px !important; font-size: 9px !important; margin-bottom: 0 !important; }
+    .alert-info hr { margin: 3px 0 !important; }
+
+    /* footer flows normally (no fixed overlap) */
+    .report-footer { position: static !important; width: auto !important; margin-top: 4px !important; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const periodSelect = document.getElementById('period-select');
+    const dateFromField = document.getElementById('date-from-field');
+    const dateToField = document.getElementById('date-to-field');
+    
+    function toggleFields() {
+        const period = periodSelect.value;
+        dateFromField.style.display = 'none';
+        dateToField.style.display = 'none';
+        
+        if (period === 'custom') {
+            dateFromField.style.display = 'block';
+            dateToField.style.display = 'block';
+        }
+    }
+    
+    periodSelect.addEventListener('change', toggleFields);
+    toggleFields();
+
+    // Export PDF functionality
+    document.getElementById('export-pdf').addEventListener('click', function() {
+        const reportContent = document.getElementById('report-body');
+        if (!reportContent) {
+            alert('Please generate a report first.');
+            return;
+        }
+
+        const printWindow = window.open('', '_blank', 'width=1000,height=800');
+        printWindow.document.write('<html><head><title>GO-FRESH Profit Breakdown</title>');
+        printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">');
+        printWindow.document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">');
+        printWindow.document.write('<style>');
+        printWindow.document.write(`
+            body { padding: 40px; font-family: Arial, sans-serif; }
+            .report-header { text-align: center; margin-bottom: 30px; }
+            .report-footer { text-align: center; margin-top: 30px; color: #6c757d; }
+            .table { font-size: 14px; }
+            .table td, .table th { padding: 10px; }
+            .card { border: 1px solid #dee2e6; margin-bottom: 20px; }
+            .card-header { background-color: #f8f9fa; padding: 10px 15px; border-bottom: 1px solid #dee2e6; }
+            .card-body { padding: 15px; }
+            .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; }
+            .bg-success { background-color: #0000ff !important; color: white; }
+            .bg-danger { background-color: #fa4659 !important; color: white; }
+            .bg-info { background-color: #2563eb !important; color: white; }
+            .bg-warning { background-color: #fd6e7f !important; color: white; }
+            .text-success { color: #0000d6 !important; }
+            .text-danger { color: #e02d44 !important; }
+            .text-white { color: white !important; }
+            .text-dark { color: #212529 !important; }
+            .text-muted { color: #6c757d !important; }
+            .table-striped tbody tr:nth-of-type(odd) { background-color: rgba(0,0,0,.02); }
+            .table-info { background-color: #d1ecf1 !important; }
+            .table-success { background-color: #d4edda !important; }
+            .table-warning { background-color: #fff3cd !important; }
+            .table-secondary { background-color: #e9ecef !important; }
+            .display-2 { font-size: 2.5rem; }
+            .border-success { border-color: #0000ff !important; }
+            .border-danger { border-color: #fa4659 !important; }
+            .table-lg td { padding: 15px !important; font-size: 16px !important; }
+        `);
+        printWindow.document.write('</style>');
+        printWindow.document.write('</head><body>');
+        
+        const content = reportContent.cloneNode(true);
+        content.querySelectorAll('.btn, .no-print, .badge.bg-light').forEach(el => el.remove());
+        
+        printWindow.document.write(content.innerHTML);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        
+        setTimeout(function() {
+            printWindow.print();
+        }, 500);
+    });
+});
+</script>
+{% endblock %}

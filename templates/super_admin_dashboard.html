@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block title %}Super Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <h4 class="fw-bold mb-0">
+        <i class="bi bi-shield-lock me-2 text-danger"></i>Super Admin Dashboard
+    </h4>
+    <span class="badge bg-danger ms-3">Super Admin</span>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #7c3aed, #8b5cf6);">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="stat-label">Total Businesses</span>
+                <i class="bi bi-buildings stat-icon"></i>
+            </div>
+            <div class="stat-value">{{ total_businesses }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #2563eb, #3b82f6);">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="stat-label">Total Users</span>
+                <i class="bi bi-people stat-icon"></i>
+            </div>
+            <div class="stat-value">{{ total_users }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #059669, #10b981);">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="stat-label">Admins</span>
+                <i class="bi bi-person-badge stat-icon"></i>
+            </div>
+            <div class="stat-value">{{ total_admins }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #dc2626, #ef4444);">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="stat-label">Inactive Users</span>
+                <i class="bi bi-person-x stat-icon"></i>
+            </div>
+            <div class="stat-value">{{ inactive_users }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <a href="{{ url_for('super_admin_create_business') }}" class="action-tile">
+            <span class="tile-icon" style="background: #e6e9ff; color: #0000a3;">
+                <i class="bi bi-building-add"></i>
+            </span>
+            <div class="tile-title">Create Business</div>
+            <p class="tile-text">Add a new business with branding</p>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="{{ url_for('super_admin_create_admin') }}" class="action-tile">
+            <span class="tile-icon" style="background: #dbeafe; color: #1d4ed8;">
+                <i class="bi bi-person-plus"></i>
+            </span>
+            <div class="tile-title">Create Admin/User</div>
+            <p class="tile-text">Add admin or user for any business</p>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="{{ url_for('admin_index') }}" class="action-tile">
+            <span class="tile-icon" style="background: #d1fae5; color: #059669;">
+                <i class="bi bi-speedometer2"></i>
+            </span>
+            <div class="tile-title">Admin Panel</div>
+            <p class="tile-text">Manage all business operations</p>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="{{ url_for('admin_summary') }}" class="action-tile">
+            <span class="tile-icon" style="background: #fef3c7; color: #d97706;">
+                <i class="bi bi-calculator"></i>
+            </span>
+            <div class="tile-title">Financial Summary</div>
+            <p class="tile-text">View all business data</p>
+        </a>
+    </div>
+</div>
+
+<!-- Businesses Table -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-buildings me-2"></i>Businesses</h5>
+        <a href="{{ url_for('super_admin_create_business') }}" class="btn btn-light btn-sm">
+            <i class="bi bi-plus"></i> Add Business
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Logo</th>
+                        <th>Name</th>
+                        <th>Tagline</th>
+                        <th>Phone</th>
+                        <th>Users</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in businesses %}
+                        <tr>
+                            <td>
+                                {% if b.logo_data %}
+                                    <img src="{{ b.logo_data }}" alt="{{ b.name }}" style="height: 30px; width: 30px; object-fit: contain;">
+                                {% else %}
+                                    <i class="bi bi-building" style="font-size: 24px;"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ b.name }}</strong>
+                                <br>
+                                <small class="text-muted">Colors: 
+                                    <span class="badge" style="background: {{ b.primary_color or '#0000ff' }};">&nbsp;</span>
+                                    <span class="badge" style="background: {{ b.secondary_color or '#fa4659' }};">&nbsp;</span>
+                                </small>
+                            </td>
+                            <td>{{ b.tagline or '-' }}</td>
+                            <td>{{ b.phone or '-' }}</td>
+                            <td><span class="badge bg-secondary">{{ b.users|length }}</span></td>
+                            <td>
+                                {% if b.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('super_admin_edit_business', business_id=b.id) }}" 
+                                       class="btn btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button onclick="deleteBusiness({{ b.id }}, '{{ b.name }}')" 
+                                            class="btn btn-outline-danger" 
+                                            {% if b.users|length > 0 %}disabled title="Has users"{% endif %}>
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-people me-2"></i>All Users</h5>
+        <a href="{{ url_for('super_admin_create_admin') }}" class="btn btn-light btn-sm">
+            <i class="bi bi-plus"></i> Create Admin/User
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Business</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                        <tr>
+                            <td>
+                                <i class="bi bi-person-circle me-1"></i>
+                                {{ u.username }}
+                                {% if u.is_super_admin %}
+                                    <span class="badge bg-danger">Super Admin</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.business %}
+                                    {% if u.business.logo_data %}
+                                        <img src="{{ u.business.logo_data }}" alt="{{ u.business.name }}" style="height: 20px; width: 20px; object-fit: contain; border-radius: 4px;">
+                                    {% endif %}
+                                    {{ u.business.name }}
+                                {% else %}
+                                    <span class="text-muted">No Business</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.is_super_admin %}
+                                    <span class="badge bg-danger">Super Admin</span>
+                                {% elif u.is_admin %}
+                                    <span class="badge bg-primary">Admin</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">User</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Disabled</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small">{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                {% if not u.is_super_admin %}
+                                    <div class="btn-group btn-group-sm">
+                                        <button onclick="toggleUser({{ u.id }}, '{{ u.username }}')" 
+                                                class="btn btn-outline-{{ 'success' if u.is_active else 'secondary' }}">
+                                            <i class="bi bi-{{ 'toggle-on' if u.is_active else 'toggle-off' }}"></i>
+                                        </button>
+                                        <button onclick="deleteUser({{ u.id }}, '{{ u.username }}')" 
+                                                class="btn btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted small"><i class="bi bi-shield-lock"></i> Protected</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleUser(userId, username) {
+    if (confirm(`Are you sure you want to toggle the status of "${username}"?`)) {
+        fetch(`/super-admin/toggle-user/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error toggling user status.');
+        });
+    }
+}
+
+function deleteUser(userId, username) {
+    if (confirm(`Are you sure you want to delete "${username}"? This action cannot be undone.`)) {
+        fetch(`/super-admin/delete-user/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error deleting user.');
+        });
+    }
+}
+
+function deleteBusiness(businessId, businessName) {
+    if (confirm(`Are you sure you want to delete "${businessName}"? This action cannot be undone.`)) {
+        fetch(`/super-admin/delete-business/${businessId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error deleting business.');
+        });
+    }
+}
+</script>
+{% endblock %}

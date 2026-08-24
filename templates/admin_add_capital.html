@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Add Capital - Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <h4 class="fw-bold mb-0">
+        <i class="bi bi-coin me-2 text-primary"></i>Add Capital
+    </h4>
+    <a href="{{ url_for('admin_index') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Admin
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Add Capital</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin_add_capital') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.date.label(class="form-label") }}
+                        {{ form.date(class="form-control" + (" is-invalid" if form.date.errors else ""), type="date") }}
+                        {% if form.date.errors %}
+                            <div class="invalid-feedback">{{ form.date.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.amount.label(class="form-label") }}
+                        {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""), placeholder="Enter capital amount in Naira") }}
+                        {% if form.amount.errors %}
+                            <div class="invalid-feedback">{{ form.amount.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                    {{ form.submit(class="btn btn-primary w-100") }}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Capital Entries by Date</h5>
+            </div>
+            <div class="card-body">
+                {% if capitals_by_date %}
+                    {% for date_key, capitals in capitals_by_date.items() %}
+                        <div class="mb-3">
+                            <h6 class="text-primary">{{ capitals[0].date.strftime('%B %d, %Y') }}</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Amount</th>
+                                            <th>Added By</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for c in capitals %}
+                                            <tr>
+                                                <td>₦{{ "%.2f"|format(c.amount) }}</td>
+                                                <td>{{ c.admin.username }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                        <tr class="table-info">
+                                            <td><strong>Total: ₦{{ "%.2f"|format(capitals|sum(attribute='amount')) }}</strong></td>
+                                            <td></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">No capital entries yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

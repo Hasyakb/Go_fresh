@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}{{ business.name }} Record Book{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=7">
+    <style>
+        :root {
+            --brand-primary: {{ business.primary_color or '#0000ff' }};
+            --brand-secondary: {{ business.secondary_color or '#fa4659' }};
+        }
+        .navbar {
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)) !important;
+        }
+        .btn-primary {
+            background-color: var(--brand-primary) !important;
+            border-color: var(--brand-primary) !important;
+        }
+        .btn-primary:hover {
+            background-color: var(--brand-secondary) !important;
+            border-color: var(--brand-secondary) !important;
+        }
+        .text-primary {
+            color: var(--brand-primary) !important;
+        }
+        .bg-primary {
+            background-color: var(--brand-primary) !important;
+        }
+        .border-primary {
+            border-color: var(--brand-primary) !important;
+        }
+        .stat-blue {
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)) !important;
+        }
+        .stat-royal {
+            background: linear-gradient(135deg, var(--brand-primary), #3b82f6) !important;
+        }
+        .stat-watermelon {
+            background: linear-gradient(135deg, var(--brand-secondary), #fd6e7f) !important;
+        }
+        .stat-blush {
+            background: linear-gradient(135deg, var(--brand-secondary), #fa4659) !important;
+        }
+        .tile-blue {
+            background: #e6e9ff;
+            color: var(--brand-primary);
+        }
+        .tile-royal {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        .tile-watermelon {
+            background: #ffe3e7;
+            color: var(--brand-secondary);
+        }
+        .card-header.bg-primary {
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)) !important;
+        }
+        .card-header.bg-success {
+            background: linear-gradient(135deg, var(--brand-primary), #3b82f6) !important;
+        }
+        .card-header.bg-danger {
+            background: linear-gradient(135deg, var(--brand-secondary), #fd6e7f) !important;
+        }
+        .card-header.bg-info {
+            background: linear-gradient(135deg, var(--brand-primary), #3b82f6) !important;
+        }
+        .card-header.bg-warning {
+            background: linear-gradient(135deg, var(--brand-secondary), #fd6e7f) !important;
+        }
+        .badge.bg-primary {
+            background-color: var(--brand-primary) !important;
+        }
+        .badge.bg-danger {
+            background-color: var(--brand-secondary) !important;
+        }
+        .badge.bg-success {
+            background-color: var(--brand-primary) !important;
+        }
+        .badge.bg-info {
+            background-color: #3b82f6 !important;
+        }
+        .money-in {
+            color: var(--brand-primary) !important;
+        }
+        .money-out {
+            color: var(--brand-secondary) !important;
+        }
+        .gf-brand-name {
+            color: #fff;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            line-height: 1.1;
+        }
+        .gf-brand-tag {
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.68rem;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            line-height: 1.1;
+        }
+        /* Business Logo in Navbar */
+        .gf-logo-img {
+            height: 42px;
+            width: 42px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            padding: 2px;
+        }
+        /* Brand Preview Colors */
+        .brand-color-preview {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        /* Print Styles */
+        @media print {
+            .navbar {
+                position: absolute !important;
+                left: -10000px !important;
+                top: 0;
+                width: 0;
+                height: 0;
+                overflow: hidden;
+            }
+            footer, .btn, form, .no-print {
+                display: none !important;
+            }
+            body {
+                background: #fff !important;
+            }
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+            }
+            .print-brand {
+                display: flex !important;
+                align-items: center;
+                gap: 10px;
+                padding-bottom: 6px;
+                margin-bottom: 10px;
+                border-bottom: 2px solid var(--brand-primary);
+            }
+            .print-brand svg {
+                width: 34px;
+                height: 34px;
+                flex-shrink: 0;
+            }
+            .print-brand-name {
+                font-weight: 800;
+                color: var(--brand-primary);
+                font-size: 14px;
+                line-height: 1.2;
+            }
+            .print-brand-contact {
+                color: #444;
+                font-size: 9px;
+            }
+            .print-brand-logo {
+                height: 40px;
+                width: 40px;
+                object-fit: contain;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand gf-brand p-0" href="{{ url_for('dashboard') }}">
+                {% if business.logo %}
+                    <img src="{{ business.logo }}" alt="{{ business.name }}" class="gf-logo-img">
+                {% else %}
+                    <span class="gf-logo">{% include 'logo.html' %}</span>
+                {% endif %}
+                <span>
+                    <span class="gf-brand-name d-block">{{ business.name }}</span>
+                    <span class="gf-brand-tag d-block">{{ business.tagline }}</span>
+                </span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    {% if current_user.is_authenticated %}
+                        <!-- Super Admin Menu -->
+                        {% if current_user.is_super_admin %}
+                            <li class="nav-item">
+                                <a class="nav-link {{ 'active' if request.endpoint == 'super_admin_dashboard' }}" 
+                                   href="{{ url_for('super_admin_dashboard') }}">
+                                    <i class="bi bi-shield-lock me-1"></i> Super Admin
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        <!-- Admin Menu -->
+                        {% if current_user.is_admin or current_user.is_super_admin %}
+                            <li class="nav-item">
+                                <a class="nav-link {{ 'active' if request.endpoint == 'admin_index' }}" href="{{ url_for('admin_index') }}">
+                                    <i class="bi bi-speedometer2 me-1"></i> Admin
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ 'active' if request.endpoint == 'add_entry' }}" href="{{ url_for('add_entry') }}">
+                                    <i class="bi bi-plus-circle me-1"></i> Add Entry
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ 'active' if request.endpoint == 'admin_summary' }}" href="{{ url_for('admin_summary') }}">
+                                    <i class="bi bi-calculator me-1"></i> Summary
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ 'active' if request.endpoint == 'admin_report' }}" href="{{ url_for('admin_report') }}">
+                                    <i class="bi bi-file-earmark-text me-1"></i> Reports
+                                </a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="manageDropdown" role="button"
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-gear me-1"></i> Manage
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow">
+                                    <li><h6 class="dropdown-header">Money</h6></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_add_capital') }}">
+                                        <i class="bi bi-coin me-2"></i>Add Capital</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_add_labour') }}">
+                                        <i class="bi bi-person-plus me-2"></i>Add Labour</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Users</h6></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_create_user') }}">
+                                        <i class="bi bi-person-plus me-2"></i>Create User</a></li>
+                                    {% if current_user.is_super_admin %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><h6 class="dropdown-header">Super Admin</h6></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('super_admin_dashboard') }}">
+                                            <i class="bi bi-shield-lock me-2"></i>Super Admin Panel</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('super_admin_create_business') }}">
+                                            <i class="bi bi-building-add me-2"></i>Create Business</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('super_admin_create_admin') }}">
+                                            <i class="bi bi-person-badge me-2"></i>Create Admin/User</a></li>
+                                    {% endif %}
+                                </ul>
+                            </li>
+                        {% else %}
+                            <!-- Regular User Menu -->
+                            <li class="nav-item">
+                                <a class="nav-link {{ 'active' if request.endpoint == 'dashboard' }}" href="{{ url_for('dashboard') }}">
+                                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ 'active' if request.endpoint == 'add_entry' }}" href="{{ url_for('add_entry') }}">
+                                    <i class="bi bi-plus-circle me-1"></i> Add Entry
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        <!-- User Profile Dropdown -->
+                        <li class="nav-item dropdown ms-lg-2">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-1"></i> {{ current_user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li>
+                                    <span class="dropdown-item-text small text-muted">
+                                        Signed in as <strong>{{ current_user.username }}</strong>
+                                        {% if current_user.is_super_admin %}
+                                            <span class="badge bg-danger ms-1">Super Admin</span>
+                                        {% elif current_user.is_admin %}
+                                            <span class="badge bg-primary ms-1">Admin</span>
+                                        {% endif %}
+                                        {% if current_user.business %}
+                                            <br>
+                                            <small>
+                                                <i class="bi bi-building me-1"></i>
+                                                {{ current_user.business.name }}
+                                            </small>
+                                        {% endif %}
+                                    </span>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.endpoint == 'login' }}" href="{{ url_for('login') }}">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Login
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-4">
+        {% block print_brand %}
+        <!-- Print-only branded header -->
+        <div class="print-brand d-none">
+            {% if business.logo %}
+                <img src="{{ business.logo }}" alt="{{ business.name }}" class="print-brand-logo">
+            {% else %}
+                {% include 'logo.html' %}
+            {% endif %}
+            <div>
+                <div class="print-brand-name">{{ business.name }} {{ business.tagline }}</div>
+                <div class="print-brand-contact">{{ business.address }} &middot; {{ business.phone }}</div>
+            </div>
+        </div>
+        {% endblock %}
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        <i class="bi bi-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-triangle{% elif category == 'warning' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>{{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="gf-footer text-center py-3 mt-4 w-100">
+        <div class="container">
+            <small>
+                <strong>{{ business.name }}</strong> &middot; {{ business.tagline }}
+                &middot; {{ business.address }} &middot; {{ business.phone }}
+                <br>&copy; {{ current_year }} {{ business.name }} Record Book
+            </small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-dismiss flash messages after 5 seconds
+        setTimeout(function () {
+            document.querySelectorAll('.alert-dismissible').forEach(function (el) {
+                bootstrap.Alert.getOrCreateInstance(el).close();
+            });
+        }, 5000);
+
+        // Handle any CSRF token issues
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensure all forms have CSRF token
+            document.querySelectorAll('form').forEach(function(form) {
+                if (!form.querySelector('input[name="csrf_token"]')) {
+                    const token = document.querySelector('meta[name="csrf-token"]');
+                    if (token) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'csrf_token';
+                        input.value = token.content;
+                        form.appendChild(input);
+                    }
+                }
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+
+{% block title %}Financial Summary - {{ business.name }}{% endblock %}
+{% block print_brand %}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <h4 class="fw-bold mb-0">
+        <i class="bi bi-calculator me-2 text-primary"></i>Financial Summary
+    </h4>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('admin_index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Admin
+        </a>
+        <button class="btn btn-primary btn-sm" onclick="window.print()">
+            <i class="bi bi-printer"></i> Print Summary
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm mb-4 border-primary border-2">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>{{ business.name }} &middot; {{ business.tagline }}</h5>
+            </div>
+            <div class="card-body" id="summary-content">
+                <!-- Business Header -->
+                <div class="text-center mb-4 report-header">
+                    <span class="gf-logo gf-logo-lg mx-auto mb-2 d-inline-block">{% include 'logo.html' %}</span>
+                    <h2 class="display-6 fw-bold text-primary mb-0">{{ business.name }}</h2>
+                    <p class="text-uppercase small mb-3" style="letter-spacing: 0.28em; color: var(--gf-red);">{{ business.tagline }}</p>
+                    <p class="mb-1">
+                        <i class="bi bi-geo-alt me-1"></i>{{ business.address }}
+                    </p>
+                    <p class="mb-0">
+                        <i class="bi bi-telephone me-1"></i>{{ business.phone }}
+                    </p>
+                    <hr>
+                    <h5>Financial Summary</h5>
+                    <p class="text-muted">As of {{ today.strftime('%B %d, %Y') }}</p>
+                </div>
+
+                <!-- All Time Summary -->
+                <h5 class="text-primary mb-3"><i class="bi bi-infinity me-1"></i>All Time</h5>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card stat-blue">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="stat-label">Productions</span>
+                                <i class="bi bi-box-seam stat-icon"></i>
+                            </div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_productions_all) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card stat-watermelon">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="stat-label">Expenses</span>
+                                <i class="bi bi-cart-dash stat-icon"></i>
+                            </div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_expenses_all) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card stat-royal">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="stat-label">Capital</span>
+                                <i class="bi bi-bank stat-icon"></i>
+                            </div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_capital_all) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card stat-blush">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="stat-label">Labour</span>
+                                <i class="bi bi-people stat-icon"></i>
+                            </div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_labour_all) }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-md-6 mx-auto">
+                        <div class="stat-card {% if profit_all >= 0 %}stat-blue{% else %}stat-watermelon{% endif %} text-center py-4">
+                            <div class="stat-label"><i class="bi bi-trophy me-1"></i>Overall Profit / Loss</div>
+                            <div class="display-5 fw-bold">
+                                {% if profit_all >= 0 %}+{% endif %}&#8358;{{ "{:,.2f}".format(profit_all) }}
+                            </div>
+                            <small class="stat-sub">Productions &minus; Capital &minus; Labour</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Today's Summary -->
+                <h5 class="text-primary mb-3"><i class="bi bi-sun me-1"></i>Today &middot; {{ today.strftime('%B %d, %Y') }}</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card stat-blue">
+                            <div class="stat-label">Productions</div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_productions_today) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card stat-watermelon">
+                            <div class="stat-label">Expenses</div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_expenses_today) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card stat-royal">
+                            <div class="stat-label">Capital</div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_capital_today) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card {% if profit_today >= 0 %}stat-blue{% else %}stat-watermelon{% endif %}">
+                            <div class="stat-label">Profit</div>
+                            <div class="stat-value">{% if profit_today >= 0 %}+{% endif %}&#8358;{{ "{:,.2f}".format(profit_today) }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Month Summary -->
+                <h5 class="text-info mb-3"><i class="bi bi-calendar-month me-1"></i>This Month &middot; {{ today.strftime('%B %Y') }}</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card stat-blue">
+                            <div class="stat-label">Productions</div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_productions_month) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card stat-watermelon">
+                            <div class="stat-label">Expenses</div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_expenses_month) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card stat-royal">
+                            <div class="stat-label">Capital</div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_capital_month) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card {% if profit_month >= 0 %}stat-blue{% else %}stat-watermelon{% endif %}">
+                            <div class="stat-label">Profit</div>
+                            <div class="stat-value">{% if profit_month >= 0 %}+{% endif %}&#8358;{{ "{:,.2f}".format(profit_month) }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Expense Breakdown</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if expense_breakdown %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm align-middle print-trim">
+                                            <thead>
+                                                <tr>
+                                                    <th>Item</th>
+                                                    <th>Count</th>
+                                                    <th>Total Cost</th>
+                                                    <th>%</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for item in expense_breakdown %}
+                                                    <tr>
+                                                        <td>{{ item.item }}</td>
+                                                        <td><span class="badge bg-secondary">{{ item.count }}</span></td>
+                                                        <td>&#8358;{{ "{:,.2f}".format(item.total_cost) }}</td>
+                                                        <td>
+                                                            {% if total_expenses_all > 0 %}
+                                                                {{ "%.1f"|format((item.total_cost / total_expenses_all) * 100) }}%
+                                                            {% else %}
+                                                                0%
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                                <tr class="table-warning">
+                                                    <td><strong>Total</strong></td>
+                                                    <td>{{ expense_breakdown|sum(attribute='count') }}</td>
+                                                    <td><strong>&#8358;{{ "{:,.2f}".format(total_expenses_all) }}</strong></td>
+                                                    <td><strong>100%</strong></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted text-center mb-0 py-3">
+                                        <i class="bi bi-inbox me-1"></i>No expenses recorded yet.
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0"><i class="bi bi-coin me-2"></i>Capital by Date</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if capitals_by_date %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm align-middle print-trim">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Total Capital</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for c in capitals_by_date %}
+                                                    <tr>
+                                                        <td>{{ c.date.strftime('%B %d, %Y') }}</td>
+                                                        <td>&#8358;{{ "{:,.2f}".format(c.total_amount) }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                                <tr class="table-success">
+                                                    <td><strong>Total</strong></td>
+                                                    <td><strong>&#8358;{{ "{:,.2f}".format(total_capital_all) }}</strong></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted text-center mb-0 py-3">
+                                        <i class="bi bi-inbox me-1"></i>No capital entries recorded yet.
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Entries (screen only – kept out of the one-page print) -->
+                <div class="row g-4 mt-4 d-print-none">
+                    <div class="col-md-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="mb-0"><i class="bi bi-box-seam me-1"></i>Recent Productions</h6>
+                            </div>
+                            <div class="card-body">
+                                {% if recent_productions %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for p in recent_productions %}
+                                                    <tr>
+                                                        <td>{{ p.date.strftime('%d/%m') }}</td>
+                                                        <td class="money-in fw-semibold">&#8358;{{ "{:,.2f}".format(p.amount) }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted text-center mb-0">No productions</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-danger text-white">
+                                <h6 class="mb-0"><i class="bi bi-cart-dash me-1"></i>Recent Expenses</h6>
+                            </div>
+                            <div class="card-body">
+                                {% if recent_expenses %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Item</th>
+                                                    <th>Cost</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for e in recent_expenses %}
+                                                    <tr>
+                                                        <td>{{ e.item }}</td>
+                                                        <td class="money-out fw-semibold">&#8358;{{ "{:,.2f}".format(e.cost) }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted text-center mb-0">No expenses</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0"><i class="bi bi-coin me-1"></i>Recent Capital</h6>
+                            </div>
+                            <div class="card-body">
+                                {% if recent_capital %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for c in recent_capital %}
+                                                    <tr>
+                                                        <td>{{ c.date.strftime('%d/%m') }}</td>
+                                                        <td class="money-in fw-semibold">&#8358;{{ "{:,.2f}".format(c.amount) }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted text-center mb-0">No capital</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="text-center text-muted mt-4 report-footer">
+                    <hr>
+                    <small>
+                        <i class="bi bi-printer me-1"></i>
+                        Generated on {{ now.strftime('%Y-%m-%d %H:%M') if now else '' }} |
+                        {{ business.name }} {{ business.tagline }} &copy; {{ now.year if now else current_year }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* ===== One-page A4 print for the Financial Summary ===== */
+@media print {
+    @page { size: A4 portrait; margin: 8mm; }
+
+    /* hide chrome */
+    footer, .btn, .no-print, form { display: none !important; }
+
+    /* neutralize screen scaffolding */
+    html, body {
+        background: #fff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 10px;
+    }
+    main.container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    .card {
+        border: 1px solid #dee2e6 !important;
+        box-shadow: none !important;
+        border-radius: 6px !important;
+        break-inside: avoid;
+    }
+    /* keep the brand colors in the printout */
+    .card-header, .stat-card {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .card-header {
+        padding: 4px 8px !important;
+        font-size: 11px !important;
+    }
+    .card-header h5, .card-header h6 { font-size: 11px !important; margin-bottom: 0 !important; }
+    .card-body { padding: 6px 8px !important; }
+
+    /* ---- letterhead ---- */
+    .report-header { margin-bottom: 6px !important; }
+    .report-header .gf-logo,
+    .report-header svg {
+        width: 34px !important;
+        height: 34px !important;
+        margin-bottom: 2px !important;
+    }
+    .report-header h2.display-6 { font-size: 17px !important; margin-bottom: 0 !important; }
+    .report-header p { font-size: 9px !important; margin-bottom: 1px !important; }
+    .report-header hr { margin: 4px 0 !important; }
+
+    /* ---- section titles ---- */
+    h5.text-primary, h5.text-info {
+        font-size: 11px !important;
+        margin-bottom: 4px !important;
+    }
+
+    /* ---- spacing compression ---- */
+    .mb-4 { margin-bottom: 6px !important; }
+    .mb-3 { margin-bottom: 4px !important; }
+    .mt-4 { margin-top: 6px !important; }
+    .row.g-3, .row.g-4 { --bs-gutter-x: 5px; --bs-gutter-y: 5px; }
+    hr { margin: 4px 0 !important; }
+
+    /* ---- stat cards ---- */
+    .stat-card {
+        padding: 4px 7px !important;
+        border-radius: 6px !important;
+        box-shadow: none !important;
+        animation: none !important;
+        break-inside: avoid;
+    }
+    .stat-card::after { display: none; }
+    .stat-icon { display: none !important; }
+    .stat-label { font-size: 7.5px !important; margin-bottom: 0 !important; }
+    .stat-value { font-size: 12px !important; }
+    .stat-sub { font-size: 7.5px !important; }
+    .display-5 { font-size: 18px !important; }
+    .stat-card.py-4 { padding-top: 5px !important; padding-bottom: 5px !important; }
+
+    /* ---- tables ---- */
+    .table-responsive {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    .table { font-size: 9px !important; margin-bottom: 0 !important; }
+    .table td, .table th { padding: 1.5px 4px !important; }
+    .table:not(.table-bordered) th { font-size: 7.5px !important; }
+
+    /* trim long tables so everything stays on one page */
+    .print-trim tbody tr:nth-child(n+9) { display: none; }
+
+    /* footer flows normally (no fixed overlap) */
+    .report-footer { position: static !important; width: auto !important; margin-top: 4px !important; }
+    .report-footer hr { margin: 3px 0 !important; }
+}
+</style>
+{% endblock %}

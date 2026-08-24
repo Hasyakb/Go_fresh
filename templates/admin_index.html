@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - {{ business.name }} Record Book{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <h4 class="fw-bold mb-0">
+        <i class="bi bi-speedometer2 me-2 text-primary"></i>Admin Dashboard
+    </h4>
+    <span class="badge bg-primary ms-3">{{ today.strftime('%B %d, %Y') }}</span>
+</div>
+
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-blue">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="stat-label">Productions (count)</span>
+                <i class="bi bi-box-seam stat-icon"></i>
+            </div>
+            <div class="stat-value">{{ total_productions }}</div>
+            <div class="stat-sub">Today: &#8358;{{ "{:,.2f}".format(total_productions_today) }}</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-watermelon">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="stat-label">Expenses (count)</span>
+                <i class="bi bi-cart-dash stat-icon"></i>
+            </div>
+            <div class="stat-value">{{ total_expenses }}</div>
+            <div class="stat-sub">Today: &#8358;{{ "{:,.2f}".format(total_expenses_today) }}</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-royal">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="stat-label">Total Capital</span>
+                <i class="bi bi-bank stat-icon"></i>
+            </div>
+            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_capital_all_time) }}</div>
+            <div class="stat-sub">Today: &#8358;{{ "{:,.2f}".format(total_capital_today) }}</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-blush">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="stat-label">Total Labour</span>
+                <i class="bi bi-people stat-icon"></i>
+            </div>
+            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_labour) }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick actions -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <a href="{{ url_for('admin_add_capital') }}" class="action-tile">
+            <span class="tile-icon tile-blue"><i class="bi bi-coin"></i></span>
+            <div class="tile-title">Add Capital</div>
+            <p class="tile-text">Record new capital injected into the business</p>
+        </a>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <a href="{{ url_for('admin_add_labour') }}" class="action-tile">
+            <span class="tile-icon tile-watermelon"><i class="bi bi-person-plus"></i></span>
+            <div class="tile-title">Add Labour</div>
+            <p class="tile-text">Record wages and labour costs</p>
+        </a>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <a href="{{ url_for('admin_summary') }}" class="action-tile">
+            <span class="tile-icon tile-royal"><i class="bi bi-calculator"></i></span>
+            <div class="tile-title">Summary</div>
+            <p class="tile-text">View the full financial summary</p>
+        </a>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <a href="{{ url_for('admin_create_user') }}" class="action-tile">
+            <span class="tile-icon tile-slate"><i class="bi bi-person-plus"></i></span>
+            <div class="tile-title">Create User</div>
+            <p class="tile-text">Add a new staff account</p>
+        </a>
+    </div>
+</div>
+
+<!-- Today's capital entries -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-coin me-2"></i>Today's Capital Entries</h5>
+        <span class="badge bg-white text-dark">{{ capitals_today|length }} entr{{ 'y' if capitals_today|length == 1 else 'ies' }}</span>
+    </div>
+    <div class="card-body">
+        {% if capitals_today %}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr>
+                            <th>Amount</th>
+                            <th>Added By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in capitals_today %}
+                            <tr>
+                                <td class="fw-semibold">&#8358;{{ "{:,.2f}".format(c.amount) }}</td>
+                                <td><i class="bi bi-person-circle me-1 text-muted"></i>{{ c.admin.username }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted text-center mb-0 py-3">
+                <i class="bi bi-inbox me-1"></i>No capital entries for today.
+            </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- System users -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-people me-2"></i>System Users</h5>
+        <a href="{{ url_for('admin_create_user') }}" class="btn btn-light btn-sm">
+            <i class="bi bi-person-plus me-1"></i>New User
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td class="text-muted">{{ user.id }}</td>
+                            <td class="fw-semibold">
+                                <i class="bi bi-person-circle me-1 text-muted"></i>{{ user.username }}
+                            </td>
+                            <td>
+                                {% if user.is_admin %}
+                                    <span class="badge bg-primary">Admin</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">User</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small">{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                {% if not user.is_admin %}
+                                    <form method="POST" action="{{ url_for('admin_delete_user', user_id=user.id) }}"
+                                          onsubmit="return confirm('Are you sure you want to delete this user?')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <span class="text-muted small"><i class="bi bi-shield-lock me-1"></i>Protected</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+</a>
+{% endblock %}
