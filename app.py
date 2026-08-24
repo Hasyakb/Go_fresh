@@ -38,6 +38,7 @@ def _get_secret_key():
     return key
 
 app.config['SECRET_KEY'] = _get_secret_key()
+# Database URL – use PostgreSQL if available, fallback to SQLite
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///record_book.db').replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
