@@ -38,7 +38,7 @@ def _get_secret_key():
     return key
 
 app.config['SECRET_KEY'] = _get_secret_key()
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///record_book.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///record_book.db').replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB max
