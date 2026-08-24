@@ -1445,12 +1445,11 @@ def super_admin_delete_business(business_id):
     
     return jsonify({'success': True, 'message': f'Business "{business.name}" deleted successfully.'})
 
-# ====================== MAIN ======================
+with app.app_context():
+    db.create_all()
+    create_default_admin()
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        create_default_admin()
     host = os.environ.get('HOST', '127.0.0.1')
     port = int(os.environ.get('PORT', '5000'))
     debug = os.environ.get('FLASK_DEBUG') == '1'
