@@ -1445,6 +1445,9 @@ def super_admin_delete_business(business_id):
     
     return jsonify({'success': True, 'message': f'Business "{business.name}" deleted successfully.'})
 
+# ====================== MAIN ======================
+
+# Create tables and default admin on app startup (for Gunicorn)
 with app.app_context():
     db.create_all()
     create_default_admin()
