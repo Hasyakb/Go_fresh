@@ -12,6 +12,9 @@
         <button class="btn btn-primary float-end" onclick="window.print()">
             <i class="bi bi-printer"></i> Print Report
         </button>
+        <button class="btn btn-success float-end me-2" id="download-pdf">
+            <i class="bi bi-file-pdf"></i> Download PDF
+        </button>
     </div>
 </div>
 
@@ -24,8 +27,8 @@
                     <button class="btn btn-light btn-sm me-2" onclick="window.print()">
                         <i class="bi bi-printer"></i> Print
                     </button>
-                    <button class="btn btn-light btn-sm" id="export-pdf">
-                        <i class="bi bi-file-pdf"></i> PDF
+                    <button class="btn btn-light btn-sm" id="download-pdf-btn">
+                        <i class="bi bi-file-pdf"></i> Download PDF
                     </button>
                 </div>
             </div>
@@ -72,7 +75,7 @@
 {% if report_data %}
 <div class="row" id="report-content">
     <div class="col-12">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm" id="report-card">
             <div class="card-header bg-success text-white d-flex justify-content-between align-items-center no-print">
                 <h5 class="mb-0">
                     <i class="bi bi-graph-up-arrow me-2"></i>
@@ -403,62 +406,168 @@ document.addEventListener('DOMContentLoaded', function() {
     periodSelect.addEventListener('change', toggleFields);
     toggleFields();
 
-    // Export PDF functionality
-    document.getElementById('export-pdf').addEventListener('click', function() {
-        const reportContent = document.getElementById('report-body');
-        if (!reportContent) {
+    // Download PDF functionality - generates a standalone HTML document
+    function downloadPDF() {
+        const reportBody = document.getElementById('report-body');
+        if (!reportBody) {
             alert('Please generate a report first.');
             return;
         }
 
-        const printWindow = window.open('', '_blank', 'width=1000,height=800');
-        printWindow.document.write('<html><head><title>GO-FRESH Profit Breakdown</title>');
-        printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">');
-        printWindow.document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">');
-        printWindow.document.write('<style>');
-        printWindow.document.write(`
-            body { padding: 40px; font-family: Arial, sans-serif; }
-            .report-header { text-align: center; margin-bottom: 30px; }
-            .report-footer { text-align: center; margin-top: 30px; color: #6c757d; }
-            .table { font-size: 14px; }
-            .table td, .table th { padding: 10px; }
-            .card { border: 1px solid #dee2e6; margin-bottom: 20px; }
-            .card-header { background-color: #f8f9fa; padding: 10px 15px; border-bottom: 1px solid #dee2e6; }
-            .card-body { padding: 15px; }
-            .badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; }
-            .bg-success { background-color: #0000ff !important; color: white; }
-            .bg-danger { background-color: #fa4659 !important; color: white; }
-            .bg-info { background-color: #2563eb !important; color: white; }
-            .bg-warning { background-color: #fd6e7f !important; color: white; }
-            .text-success { color: #0000d6 !important; }
-            .text-danger { color: #e02d44 !important; }
-            .text-white { color: white !important; }
-            .text-dark { color: #212529 !important; }
-            .text-muted { color: #6c757d !important; }
-            .table-striped tbody tr:nth-of-type(odd) { background-color: rgba(0,0,0,.02); }
-            .table-info { background-color: #d1ecf1 !important; }
-            .table-success { background-color: #d4edda !important; }
-            .table-warning { background-color: #fff3cd !important; }
-            .table-secondary { background-color: #e9ecef !important; }
-            .display-2 { font-size: 2.5rem; }
-            .border-success { border-color: #0000ff !important; }
-            .border-danger { border-color: #fa4659 !important; }
-            .table-lg td { padding: 15px !important; font-size: 16px !important; }
-        `);
-        printWindow.document.write('</style>');
-        printWindow.document.write('</head><body>');
+        // Get the report content
+        const content = reportBody.cloneNode(true);
         
-        const content = reportContent.cloneNode(true);
-        content.querySelectorAll('.btn, .no-print, .badge.bg-light').forEach(el => el.remove());
-        
-        printWindow.document.write(content.innerHTML);
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
-        
-        setTimeout(function() {
-            printWindow.print();
-        }, 500);
-    });
+        // Remove any buttons or no-print elements from the content
+        content.querySelectorAll('.btn, .no-print').forEach(el => el.remove());
+
+        // Create a complete HTML document for PDF download
+        const styles = `
+            <style>
+                body { 
+                    font-family: Arial, sans-serif; 
+                    padding: 40px; 
+                    max-width: 1100px; 
+                    margin: 0 auto;
+                    color: #212529;
+                }
+                .report-header { 
+                    text-align: center; 
+                    margin-bottom: 30px; 
+                }
+                .report-header .gf-logo, .report-header svg {
+                    width: 64px;
+                    height: 64px;
+                    display: inline-block;
+                }
+                .report-header h2 { 
+                    font-size: 28px; 
+                    font-weight: 700;
+                    margin-bottom: 0;
+                    color: #0000ff;
+                }
+                .report-header p { 
+                    margin-bottom: 2px; 
+                    font-size: 14px;
+                }
+                .report-header hr { 
+                    margin: 10px 0; 
+                    border: 1px solid #ddd;
+                }
+                .report-footer {
+                    text-align: center;
+                    margin-top: 30px;
+                    color: #6c757d;
+                    font-size: 12px;
+                }
+                .display-2 { font-size: 48px; font-weight: 700; }
+                .money-in { color: #0000ff; }
+                .money-out { color: #fa4659; }
+                .stat-card {
+                    padding: 15px 20px;
+                    border-radius: 8px;
+                    color: #fff;
+                    margin-bottom: 10px;
+                }
+                .stat-blue { background: linear-gradient(135deg, #0000a3, #0000ff); }
+                .stat-royal { background: linear-gradient(135deg, #1d4ed8, #2563eb); }
+                .stat-blush { background: linear-gradient(135deg, #fa4659, #fd6e7f); }
+                .stat-value { font-size: 22px; font-weight: 700; }
+                .stat-label { font-size: 12px; text-transform: uppercase; opacity: 0.85; }
+                .stat-sub { font-size: 12px; opacity: 0.85; }
+                .table { width: 100%; border-collapse: collapse; }
+                .table-bordered td, .table-bordered th { 
+                    border: 1px solid #dee2e6; 
+                    padding: 12px 15px; 
+                }
+                .table-success { background-color: #d4edda; }
+                .table-info { background-color: #d1ecf1; }
+                .table-warning { background-color: #fff3cd; }
+                .table-secondary { background-color: #e9ecef; }
+                .table-danger { background-color: #f8d7da; }
+                .text-muted { color: #6c757d; }
+                .text-end { text-align: right; }
+                .fw-bold { font-weight: 700; }
+                .alert-info { 
+                    background-color: #d1ecf1; 
+                    padding: 15px 20px; 
+                    border-radius: 4px;
+                    border: 1px solid #bee5eb;
+                }
+                .card { 
+                    border: 1px solid #dee2e6; 
+                    border-radius: 8px; 
+                    margin-bottom: 20px;
+                    background: #fff;
+                }
+                .card-body { padding: 20px; }
+                .card-header { 
+                    padding: 12px 20px; 
+                    background-color: #f8f9fa; 
+                    border-bottom: 1px solid #dee2e6;
+                    font-weight: 600;
+                }
+                .border-success { border-color: #0000ff !important; border-width: 2px; }
+                .border-danger { border-color: #fa4659 !important; border-width: 2px; }
+                .shadow-lg { box-shadow: 0 1rem 3rem rgba(0,0,0,.175); }
+                .text-center { text-align: center; }
+                .mx-auto { margin-left: auto; margin-right: auto; }
+                .mb-4 { margin-bottom: 24px; }
+                .mb-3 { margin-bottom: 16px; }
+                .mt-4 { margin-top: 24px; }
+                .row { display: flex; flex-wrap: wrap; }
+                .col-md-4 { flex: 0 0 33.333%; max-width: 33.333%; }
+                .col-md-8 { flex: 0 0 66.667%; max-width: 66.667%; }
+                .col-lg-8 { flex: 0 0 66.667%; max-width: 66.667%; }
+                .col-6 { flex: 0 0 50%; max-width: 50%; }
+                .col-12 { flex: 0 0 100%; max-width: 100%; }
+                .g-3 > * { padding: 8px; }
+                .badge { 
+                    display: inline-block; 
+                    padding: 4px 8px; 
+                    border-radius: 4px; 
+                    font-size: 10px; 
+                    font-weight: 700;
+                }
+                .bg-success { background-color: #28a745; color: #fff; }
+                .bg-danger { background-color: #dc3545; color: #fff; }
+                .table-sm td { padding: 4px 8px; }
+                .table-striped tbody tr:nth-of-type(odd) { background-color: rgba(0,0,0,.02); }
+                .table-info td { background-color: #d1ecf1; }
+                hr { margin: 16px 0; }
+            </style>
+        `;
+
+        // Build the full HTML document
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>GO-FRESH Profit Breakdown Report</title>
+                ${styles}
+            </head>
+            <body>
+                ${content.innerHTML}
+            </body>
+            </html>
+        `;
+
+        // Create a Blob and download
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const timestamp = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `profit_breakdown_${timestamp}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // Attach PDF download to both buttons
+    document.getElementById('download-pdf')?.addEventListener('click', downloadPDF);
+    document.getElementById('download-pdf-btn')?.addEventListener('click', downloadPDF);
 });
 </script>
 {% endblock %}
