@@ -3,57 +3,58 @@
 {% block title %}Admin - {{ business.name }} Record Book{% endblock %}
 
 {% block content %}
-<div class="d-flex align-items-center mb-4">
-    <h4 class="fw-bold mb-0">
+<div class="d-flex align-items-center mb-3">
+    <h5 class="fw-bold mb-0">
         <i class="bi bi-speedometer2 me-2 text-primary"></i>Admin Dashboard
-    </h4>
+    </h5>
     <span class="badge bg-primary ms-3">{{ today.strftime('%B %d, %Y') }}</span>
 </div>
 
-<!-- Stat cards -->
-<div class="row g-3 mb-4">
+<!-- Stat cards - very small -->
+<div class="row g-1 mb-3">  <!-- reduced gutter -->
     <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-blue">
+        <div class="stat-card stat-blue p-2">  <!-- reduced padding -->
             <div class="d-flex justify-content-between align-items-start">
-                <span class="stat-label">Productions (count)</span>
-                <i class="bi bi-box-seam stat-icon"></i>
+                <span class="stat-label" style="font-size: 0.65rem;">Productions (count)</span>
+                <i class="bi bi-box-seam stat-icon" style="font-size: 1rem;"></i>
             </div>
-            <div class="stat-value">{{ total_productions }}</div>
-            <div class="stat-sub">Today: &#8358;{{ "{:,.2f}".format(total_productions_today) }}</div>
+            <div class="stat-value" style="font-size: 0.9rem; font-weight: 600;">{{ total_productions }}</div>
+            <div class="stat-sub" style="font-size: 0.6rem;">Today: ₦{{ "{:,.2f}".format(total_productions_today) }}</div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-watermelon">
+        <div class="stat-card stat-watermelon p-2">
             <div class="d-flex justify-content-between align-items-start">
-                <span class="stat-label">Expenses (count)</span>
-                <i class="bi bi-cart-dash stat-icon"></i>
+                <span class="stat-label" style="font-size: 0.65rem;">Expenses (count)</span>
+                <i class="bi bi-cart-dash stat-icon" style="font-size: 1rem;"></i>
             </div>
-            <div class="stat-value">{{ total_expenses }}</div>
-            <div class="stat-sub">Today: &#8358;{{ "{:,.2f}".format(total_expenses_today) }}</div>
+            <div class="stat-value" style="font-size: 0.9rem; font-weight: 600;">{{ total_expenses }}</div>
+            <div class="stat-sub" style="font-size: 0.6rem;">Today: ₦{{ "{:,.2f}".format(total_expenses_today) }}</div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-royal">
+        <div class="stat-card stat-royal p-2">
             <div class="d-flex justify-content-between align-items-start">
-                <span class="stat-label">Total Capital</span>
-                <i class="bi bi-bank stat-icon"></i>
+                <span class="stat-label" style="font-size: 0.65rem;">Total Capital</span>
+                <i class="bi bi-bank stat-icon" style="font-size: 1rem;"></i>
             </div>
-            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_capital_all_time) }}</div>
-            <div class="stat-sub">Today: &#8358;{{ "{:,.2f}".format(total_capital_today) }}</div>
+            <div class="stat-value" style="font-size: 0.9rem; font-weight: 600;">₦{{ "{:,.2f}".format(total_capital_all_time) }}</div>
+            <div class="stat-sub" style="font-size: 0.6rem;">Today: ₦{{ "{:,.2f}".format(total_capital_today) }}</div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-blush">
+        <div class="stat-card stat-blush p-2">
             <div class="d-flex justify-content-between align-items-start">
-                <span class="stat-label">Total Labour</span>
-                <i class="bi bi-people stat-icon"></i>
+                <span class="stat-label" style="font-size: 0.65rem;">Total Labour</span>
+                <i class="bi bi-people stat-icon" style="font-size: 1rem;"></i>
             </div>
-            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_labour) }}</div>
+            <div class="stat-value" style="font-size: 0.9rem; font-weight: 600;">₦{{ "{:,.2f}".format(total_labour) }}</div>
+            <div class="stat-sub" style="font-size: 0.6rem;">All time</div>
         </div>
     </div>
 </div>
 
-<!-- Quick actions -->
+<!-- Quick actions - unchanged -->
 <div class="row g-3 mb-4">
     <div class="col-xl-3 col-md-6">
         <a href="{{ url_for('admin_add_capital') }}" class="action-tile">
@@ -85,7 +86,7 @@
     </div>
 </div>
 
-<!-- Today's capital entries -->
+<!-- Today's capital entries - unchanged -->
 <div class="card shadow-sm mb-4">
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="bi bi-coin me-2"></i>Today's Capital Entries</h5>
@@ -119,7 +120,7 @@
     </div>
 </div>
 
-<!-- System users -->
+<!-- System users - unchanged -->
 <div class="card shadow-sm mb-4">
     <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="bi bi-people me-2"></i>System Users</h5>
