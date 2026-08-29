@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>GO-FRESH - Find Your Shop</title>
+    <title>Find Your Shop</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
@@ -215,40 +215,6 @@
             opacity: 0.5;
         }
         
-        .popular-shops {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eef1f5;
-        }
-        
-        .popular-shops-label {
-            color: #8a9bb0;
-            font-size: 0.85rem;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .popular-shop-tag {
-            display: inline-block;
-            padding: 6px 16px;
-            border-radius: 20px;
-            background: #f0f4ff;
-            color: var(--brand-blue);
-            font-size: 0.85rem;
-            font-weight: 500;
-            margin: 4px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
-        
-        .popular-shop-tag:hover {
-            background: var(--brand-blue);
-            color: #fff;
-            transform: translateY(-2px);
-        }
-        
         .landing-footer {
             text-align: center;
             padding: 20px;
@@ -335,24 +301,11 @@
                 <!-- Search Results Dropdown -->
                 <div class="search-results" id="searchResults"></div>
             </div>
-            
-            <!-- Popular Shops -->
-            <div class="popular-shops" id="popularShops">
-                <div class="popular-shops-label">
-                    <i class="bi bi-star-fill" style="color: #f59e0b; font-size: 0.7rem;"></i>
-                    Popular Shops
-                </div>
-                {% for b in businesses[:5] %}
-                    <a href="{{ url_for('shop_login', shop_id=b.id) }}" class="popular-shop-tag">
-                        {{ b.name }}
-                    </a>
-                {% endfor %}
-            </div>
         </div>
     </div>
 
     <div class="landing-footer">
-        <strong>GO-FRESH</strong> Electronic Record Book &middot; {{ current_year }}
+        Electronic Record Book &middot; {{ current_year }}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -361,11 +314,9 @@
             const searchInput = document.getElementById('shopSearch');
             const resultsContainer = document.getElementById('searchResults');
             const clearBtn = document.getElementById('clearSearch');
-            const popularShops = document.getElementById('popularShops');
             
             let debounceTimer = null;
             let selectedIndex = -1;
-            let currentResults = [];
             
             // Focus input on load
             searchInput.focus();
@@ -392,7 +343,6 @@
                 fetch(`/api/search-shops?q=${encodeURIComponent(query)}`)
                     .then(response => response.json())
                     .then(data => {
-                        currentResults = data;
                         renderResults(data);
                     })
                     .catch(error => {
@@ -439,9 +389,6 @@
                 
                 resultsContainer.innerHTML = html;
                 resultsContainer.classList.add('show');
-                
-                // Hide popular shops when searching
-                popularShops.style.display = 'none';
             }
             
             // Clear search
@@ -449,7 +396,6 @@
                 searchInput.value = '';
                 resultsContainer.classList.remove('show');
                 resultsContainer.innerHTML = '';
-                popularShops.style.display = 'block';
                 clearBtn.style.display = 'none';
                 selectedIndex = -1;
                 searchInput.focus();
