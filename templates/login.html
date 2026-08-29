@@ -6,9 +6,13 @@
 <div class="login-wrap">
     <div class="card shadow overflow-hidden" style="max-width: 820px; width: 100%;">
         <div class="row g-0">
-            <div class="col-md-5 login-hero d-none d-md-flex">
+            <div class="col-md-5 login-hero d-none d-md-flex" style="background: linear-gradient(150deg, {{ business.primary_color or '#0000a3' }}, {{ business.secondary_color or '#fa4659' }});">
                 <div>
-                    <span class="gf-logo gf-logo-lg mb-3">{% include 'logo.html' %}</span>
+                    {% if business.logo %}
+                        <img src="{{ business.logo }}" alt="{{ business.name }}" style="max-width: 80px; max-height: 80px; margin-bottom: 15px; border-radius: 12px; background: rgba(255,255,255,0.1); padding: 8px;">
+                    {% else %}
+                        <span class="gf-logo gf-logo-lg mb-3">{% include 'logo.html' %}</span>
+                    {% endif %}
                     <h2 class="fw-bold mb-1">{{ business.name }}</h2>
                     <p class="text-uppercase small mb-4" style="letter-spacing: 0.25em; opacity: 0.75;">
                         {{ business.tagline }}
@@ -21,8 +25,26 @@
             </div>
             <div class="col-md-7">
                 <div class="card-body p-4 p-lg-5">
+                    <!-- Mobile Logo -->
+                    <div class="text-center d-md-none mb-4">
+                        {% if business.logo %}
+                            <img src="{{ business.logo }}" alt="{{ business.name }}" style="max-width: 60px; max-height: 60px; border-radius: 10px; margin-bottom: 5px;">
+                        {% else %}
+                            <span class="gf-logo gf-logo-lg d-block mx-auto mb-2">{% include 'logo.html' %}</span>
+                        {% endif %}
+                        <h5 class="fw-bold mb-0" style="color: {{ business.primary_color or '#0000ff' }};">{{ business.name }}</h5>
+                        <small class="text-muted">{{ business.tagline }}</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <a href="{{ url_for('landing') }}" class="text-muted text-decoration-none small">
+                            <i class="bi bi-arrow-left"></i> Change Shop
+                        </a>
+                    </div>
+                    
                     <h4 class="fw-bold mb-1">Welcome back</h4>
-                    <p class="text-muted small mb-4">Sign in to continue to your record book.</p>
+                    <p class="text-muted small mb-4">Sign in to continue to {{ business.name }}.</p>
+                    
                     <form method="POST" action="{{ url_for('login') }}">
                         {{ form.hidden_tag() }}
                         <div class="mb-3">
@@ -45,7 +67,7 @@
                                 <div class="invalid-feedback d-block">{{ form.password.errors[0] }}</div>
                             {% endif %}
                         </div>
-                        {{ form.submit(class="btn btn-primary w-100 py-2") }}
+                        {{ form.submit(class="btn w-100 py-2", style="background: {{ business.primary_color or '#0000ff' }}; border-color: {{ business.primary_color or '#0000ff' }}; color: #fff;") }}
                     </form>
                     <hr class="my-4">
                     <p class="text-center text-muted small mb-0">
@@ -56,4 +78,19 @@
         </div>
     </div>
 </div>
+
+<style>
+.login-hero {
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.login-wrap {
+    min-height: calc(100vh - 160px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
 {% endblock %}

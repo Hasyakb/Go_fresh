@@ -258,7 +258,7 @@ class ReportFilterForm(FlaskForm):
 
 def get_business_from_request():
     """Get business based on request host, session, or domain"""
-    # First check if user has a shop in session
+    # First check session
     if 'shop_id' in session:
         business = Business.query.filter_by(id=session['shop_id'], is_active=True).first()
         if business:
@@ -279,7 +279,7 @@ def get_business_from_request():
         if business:
             return business
     
-    # Check if there's a shop parameter in URL
+    # Check for shop parameter in URL
     shop_id = request.args.get('shop')
     if shop_id:
         business = Business.query.filter_by(id=shop_id, is_active=True).first()
@@ -481,9 +481,62 @@ def get_date_range(form):
     
     return start_date, end_date
 
-# ====================== AUTHENTICATION ROUTES ======================
+# ====================== LANDING PAGE ROUTE ======================
 
 @app.route('/')
+def landing():
+    """Landing page with shop search"""
+    # If user is already logged in, redirect to dashboard
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    
+    # Get all active businesses for popular shops
+    businesses = Business.query.filter_by(is_active=True).all()
+    
+    return render_template('landing.html', businesses=businesses)
+
+@app.route('/api/search-shops')
+def search_shops():
+    """API endpoint for shop search autocomplete"""
+    query = request.args.get('q', '').strip()
+    if not query:
+        return jsonify([])
+    
+    # Search businesses by name (case-insensitive)
+    businesses = Business.query.filter(
+        Business.is_active == True,
+        Business.name.ilike(f'%{query}%')
+    ).limit(10).all()
+    
+    results = []
+    for b in businesses:
+        results.append({
+            'id': b.id,
+            'name': b.name,
+            'tagline': b.tagline or '',
+            'logo': b.logo_data,
+            'primary_color': b.primary_color,
+            'secondary_color': b.secondary_color
+        })
+    
+    return jsonify(results)
+
+@app.route('/shop/<int:shop_id>/login')
+def shop_login(shop_id):
+    """Direct login page for a specific shop"""
+    business = Business.query.get_or_404(shop_id)
+    if not business.is_active:
+        flash('This shop is not active.', 'warning')
+        return redirect(url_for('landing'))
+    
+    # Store shop in session
+    session['shop_id'] = shop_id
+    
+    # Redirect to login page with shop parameter
+    return redirect(url_for('login', shop=shop_id))
+
+# ====================== AUTHENTICATION ROUTES ======================
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -506,31 +559,22 @@ def login():
             
             login_user(user)
             flash('Login successful!', 'success')
+            
+            # Redirect to dashboard with business info
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid username or password', 'danger')
     
     return render_template('login.html', form=form, business=business_info, all_businesses=all_businesses)
 
-@app.route('/shop/<int:shop_id>')
-def switch_shop(shop_id):
-    """Switch to a different shop/business"""
-    business = Business.query.get_or_404(shop_id)
-    if not business.is_active:
-        flash('This shop is not active.', 'warning')
-        return redirect(url_for('login'))
-    
-    # Store shop preference in session
-    session['shop_id'] = shop_id
-    flash(f'Switched to {business.name}', 'info')
-    return redirect(url_for('login'))
-
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
+    # Clear shop session
+    session.pop('shop_id', None)
     flash('You have been logged out.', 'info')
-    return redirect(url_for('login'))
+    return redirect(url_for('landing'))
 
 # ====================== USER DASHBOARD ======================
 

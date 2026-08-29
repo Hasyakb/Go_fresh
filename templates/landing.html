@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>GO-FRESH - Find Your Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <style>
+        :root {
+            --brand-blue: #0000ff;
+            --brand-red: #fa4659;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8edff 100%);
+            display: flex;
+            flex-direction: column;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        
+        .landing-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .landing-card {
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 100, 0.15);
+            text-align: center;
+        }
+        
+        .landing-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            display: block;
+        }
+        
+        .landing-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1a1a3e;
+            margin-bottom: 5px;
+        }
+        
+        .landing-subtitle {
+            color: #6c7a8a;
+            font-size: 1rem;
+            margin-bottom: 30px;
+        }
+        
+        .search-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 16px 20px 16px 55px;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            background: #f8faff;
+            color: #1a1a3e;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--brand-blue);
+            box-shadow: 0 0 0 4px rgba(0, 0, 255, 0.1);
+            background: #ffffff;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8a9bb0;
+            font-size: 1.3rem;
+            pointer-events: none;
+        }
+        
+        .search-clear {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #8a9bb0;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: none;
+            padding: 4px 8px;
+        }
+        
+        .search-clear:hover {
+            color: #fa4659;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 8px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0, 0, 100, 0.15);
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .search-results.show {
+            display: block;
+        }
+        
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid #f0f2f5;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-result-item:hover {
+            background: #f5f8ff;
+        }
+        
+        .search-result-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            object-fit: contain;
+            margin-right: 14px;
+            flex-shrink: 0;
+            background: #f8faff;
+            padding: 4px;
+        }
+        
+        .search-result-logo-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            margin-right: 14px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--brand-blue), var(--brand-red));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .search-result-info {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .search-result-name {
+            font-weight: 600;
+            color: #1a1a3e;
+            font-size: 1rem;
+        }
+        
+        .search-result-tagline {
+            color: #8a9bb0;
+            font-size: 0.85rem;
+        }
+        
+        .search-result-badge {
+            background: var(--brand-blue);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .no-results {
+            padding: 30px 20px;
+            text-align: center;
+            color: #8a9bb0;
+        }
+        
+        .no-results i {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+        
+        .popular-shops {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eef1f5;
+        }
+        
+        .popular-shops-label {
+            color: #8a9bb0;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .popular-shop-tag {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            background: #f0f4ff;
+            color: var(--brand-blue);
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .popular-shop-tag:hover {
+            background: var(--brand-blue);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        
+        .landing-footer {
+            text-align: center;
+            padding: 20px;
+            color: #8a9bb0;
+            font-size: 0.85rem;
+        }
+        
+        .search-loading {
+            padding: 20px;
+            text-align: center;
+            color: #8a9bb0;
+        }
+        
+        .search-loading .spinner-border {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .search-results::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .search-results::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .search-results::-webkit-scrollbar-thumb {
+            background: #d0d5e0;
+            border-radius: 3px;
+        }
+        
+        .search-results::-webkit-scrollbar-thumb:hover {
+            background: #b0b8c8;
+        }
+        
+        @media (max-width: 576px) {
+            .landing-card {
+                padding: 24px;
+            }
+            
+            .landing-title {
+                font-size: 1.5rem;
+            }
+            
+            .search-input {
+                font-size: 0.95rem;
+                padding: 14px 16px 14px 48px;
+            }
+            
+            .search-result-item {
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="landing-container">
+        <div class="landing-card">
+            <!-- Logo -->
+            <div class="landing-logo">
+                {% include 'logo.html' %}
+            </div>
+            
+            <!-- Title -->
+            <h1 class="landing-title">Find Your Shop</h1>
+            <p class="landing-subtitle">Search for your shop name to continue</p>
+            
+            <!-- Search Box -->
+            <div class="search-wrapper">
+                <span class="search-icon"><i class="bi bi-search"></i></span>
+                <input 
+                    type="text" 
+                    id="shopSearch" 
+                    class="search-input" 
+                    placeholder="Search for your shop..."
+                    autocomplete="off"
+                    autofocus
+                >
+                <button class="search-clear" id="clearSearch" aria-label="Clear search">
+                    <i class="bi bi-x-circle-fill"></i>
+                </button>
+                
+                <!-- Search Results Dropdown -->
+                <div class="search-results" id="searchResults"></div>
+            </div>
+            
+            <!-- Popular Shops -->
+            <div class="popular-shops" id="popularShops">
+                <div class="popular-shops-label">
+                    <i class="bi bi-star-fill" style="color: #f59e0b; font-size: 0.7rem;"></i>
+                    Popular Shops
+                </div>
+                {% for b in businesses[:5] %}
+                    <a href="{{ url_for('shop_login', shop_id=b.id) }}" class="popular-shop-tag">
+                        {{ b.name }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="landing-footer">
+        <strong>GO-FRESH</strong> Electronic Record Book &middot; {{ current_year }}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('shopSearch');
+            const resultsContainer = document.getElementById('searchResults');
+            const clearBtn = document.getElementById('clearSearch');
+            const popularShops = document.getElementById('popularShops');
+            
+            let debounceTimer = null;
+            let selectedIndex = -1;
+            let currentResults = [];
+            
+            // Focus input on load
+            searchInput.focus();
+            
+            // Search function
+            function performSearch(query) {
+                if (!query || query.length < 1) {
+                    resultsContainer.classList.remove('show');
+                    resultsContainer.innerHTML = '';
+                    selectedIndex = -1;
+                    return;
+                }
+                
+                // Show loading state
+                resultsContainer.innerHTML = `
+                    <div class="search-loading">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2">Searching...</div>
+                    </div>
+                `;
+                resultsContainer.classList.add('show');
+                
+                // Make API request
+                fetch(`/api/search-shops?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        currentResults = data;
+                        renderResults(data);
+                    })
+                    .catch(error => {
+                        console.error('Search error:', error);
+                        resultsContainer.innerHTML = `
+                            <div class="no-results">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                <div>Error searching. Please try again.</div>
+                            </div>
+                        `;
+                    });
+            }
+            
+            // Render results
+            function renderResults(results) {
+                if (results.length === 0) {
+                    resultsContainer.innerHTML = `
+                        <div class="no-results">
+                            <i class="bi bi-shop"></i>
+                            <div>No shops found. Try a different search.</div>
+                        </div>
+                    `;
+                    resultsContainer.classList.add('show');
+                    return;
+                }
+                
+                let html = '';
+                results.forEach((shop, index) => {
+                    const initial = shop.name.charAt(0).toUpperCase();
+                    html += `
+                        <a href="/shop/${shop.id}/login" class="search-result-item" data-index="${index}">
+                            ${shop.logo ? 
+                                `<img src="${shop.logo}" alt="${shop.name}" class="search-result-logo">` :
+                                `<div class="search-result-logo-placeholder" style="background: ${shop.primary_color || '#0000ff'};">${initial}</div>`
+                            }
+                            <div class="search-result-info">
+                                <div class="search-result-name">${shop.name}</div>
+                                ${shop.tagline ? `<div class="search-result-tagline">${shop.tagline}</div>` : ''}
+                            </div>
+                            <span class="search-result-badge" style="background: ${shop.primary_color || '#0000ff'};">Go</span>
+                        </a>
+                    `;
+                });
+                
+                resultsContainer.innerHTML = html;
+                resultsContainer.classList.add('show');
+                
+                // Hide popular shops when searching
+                popularShops.style.display = 'none';
+            }
+            
+            // Clear search
+            function clearSearch() {
+                searchInput.value = '';
+                resultsContainer.classList.remove('show');
+                resultsContainer.innerHTML = '';
+                popularShops.style.display = 'block';
+                clearBtn.style.display = 'none';
+                selectedIndex = -1;
+                searchInput.focus();
+            }
+            
+            // Input event with debounce
+            searchInput.addEventListener('input', function(e) {
+                const query = this.value.trim();
+                clearBtn.style.display = query ? 'block' : 'none';
+                
+                if (query.length === 0) {
+                    clearSearch();
+                    return;
+                }
+                
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    performSearch(query);
+                }, 300);
+            });
+            
+            // Keyboard navigation
+            searchInput.addEventListener('keydown', function(e) {
+                const items = resultsContainer.querySelectorAll('.search-result-item');
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (items.length > 0) {
+                        selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                        updateSelected(items);
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (items.length > 0) {
+                        selectedIndex = Math.max(selectedIndex - 1, 0);
+                        updateSelected(items);
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && items[selectedIndex]) {
+                        items[selectedIndex].click();
+                    } else if (items.length > 0) {
+                        items[0].click();
+                    }
+                } else if (e.key === 'Escape') {
+                    clearSearch();
+                }
+            });
+            
+            function updateSelected(items) {
+                items.forEach((item, index) => {
+                    if (index === selectedIndex) {
+                        item.style.background = '#f0f4ff';
+                        item.scrollIntoView({ block: 'nearest' });
+                    } else {
+                        item.style.background = '';
+                    }
+                });
+            }
+            
+            // Clear button
+            clearBtn.addEventListener('click', clearSearch);
+            
+            // Click outside to close
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-wrapper')) {
+                    resultsContainer.classList.remove('show');
+                }
+            });
+            
+            // Keyboard shortcut: Ctrl+K or Cmd+K to focus search
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            });
+            
+            // Auto-search if URL has ?q= parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const qParam = urlParams.get('q');
+            if (qParam) {
+                searchInput.value = qParam;
+                performSearch(qParam);
+            }
+        });
+    </script>
+</body>
+</html>
