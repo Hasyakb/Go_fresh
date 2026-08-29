@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, request, jsonify, send_file
+from flask import Flask, render_template, redirect, url_for, flash, request, jsonify, send_file, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_bootstrap import Bootstrap
@@ -38,6 +38,8 @@ def _get_secret_key():
     return key
 
 app.config['SECRET_KEY'] = _get_secret_key()
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = False
 # Database URL – use PostgreSQL if available, fallback to SQLite
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///record_book.db').replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -254,10 +256,48 @@ class ReportFilterForm(FlaskForm):
 
 # ====================== HELPERS ======================
 
-def get_business_info():
-    """Get business info for the current user's business"""
+def get_business_from_request():
+    """Get business based on request host, session, or domain"""
+    # First check if user has a shop in session
+    if 'shop_id' in session:
+        business = Business.query.filter_by(id=session['shop_id'], is_active=True).first()
+        if business:
+            return business
+    
+    # Get host from request
+    host = request.host.split(':')[0]  # Remove port if present
+    
+    # Check for subdomain
+    subdomain = host.split('.')[0] if '.' in host else None
+    
+    # Try to find business by subdomain
+    if subdomain and subdomain != 'www' and subdomain != 'go-fresh':
+        business = Business.query.filter(
+            Business.is_active == True,
+            Business.name.ilike(f'%{subdomain}%')
+        ).first()
+        if business:
+            return business
+    
+    # Check if there's a shop parameter in URL
+    shop_id = request.args.get('shop')
+    if shop_id:
+        business = Business.query.filter_by(id=shop_id, is_active=True).first()
+        if business:
+            return business
+    
+    # For logged-in users, use their business
     if current_user.is_authenticated and current_user.business:
-        business = current_user.business
+        return current_user.business
+    
+    # Default to first active business
+    return Business.query.filter_by(is_active=True).first() or Business.query.first()
+
+def get_business_info_by_request():
+    """Get business info based on request"""
+    business = get_business_from_request()
+    
+    if business:
         return {
             'name': business.name,
             'tagline': business.tagline or '',
@@ -270,6 +310,8 @@ def get_business_info():
             'secondary_color': business.secondary_color,
             'id': business.id
         }
+    
+    # Fallback to default
     return {
         'name': 'GO-FRESH',
         'tagline': 'Milkshake',
@@ -283,11 +325,30 @@ def get_business_info():
         'id': None
     }
 
+def get_business_for_user(user):
+    """Get business info for a specific user"""
+    if user and user.business:
+        business = user.business
+        return {
+            'name': business.name,
+            'tagline': business.tagline or '',
+            'products': business.get_products(),
+            'address': business.address or '',
+            'phone': business.phone or '',
+            'email': business.email or '',
+            'logo': business.logo_data,
+            'primary_color': business.primary_color,
+            'secondary_color': business.secondary_color,
+            'id': business.id
+        }
+    return get_business_info_by_request()
+
 @app.context_processor
 def inject_globals():
+    business_info = get_business_info_by_request()
     return {
         'current_year': datetime.now().year,
-        'business': get_business_info()
+        'business': business_info
     }
 
 @login_manager.user_loader
@@ -429,19 +490,40 @@ def login():
         return redirect(url_for('dashboard'))
     
     form = LoginForm()
+    business_info = get_business_info_by_request()
+    all_businesses = Business.query.filter_by(is_active=True).all()
+    
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user and check_password_hash(user.password, form.password.data):
             if not user.is_active:
                 flash('Your account has been disabled. Please contact an administrator.', 'danger')
-                return render_template('login.html', form=form)
+                return render_template('login.html', form=form, business=business_info, all_businesses=all_businesses)
+            
+            # Update session with user's business
+            if user.business:
+                session['shop_id'] = user.business.id
+            
             login_user(user)
             flash('Login successful!', 'success')
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid username or password', 'danger')
     
-    return render_template('login.html', form=form)
+    return render_template('login.html', form=form, business=business_info, all_businesses=all_businesses)
+
+@app.route('/shop/<int:shop_id>')
+def switch_shop(shop_id):
+    """Switch to a different shop/business"""
+    business = Business.query.get_or_404(shop_id)
+    if not business.is_active:
+        flash('This shop is not active.', 'warning')
+        return redirect(url_for('login'))
+    
+    # Store shop preference in session
+    session['shop_id'] = shop_id
+    flash(f'Switched to {business.name}', 'info')
+    return redirect(url_for('login'))
 
 @app.route('/logout')
 @login_required
@@ -456,6 +538,9 @@ def logout():
 @login_required
 def dashboard():
     today = date.today()
+    
+    # Get business info for the current user
+    business_info = get_business_for_user(current_user)
     
     # ===== CAPITAL STATISTICS (Global) =====
     total_capital_all_time = db.session.query(func.sum(Capital.amount)).scalar() or 0
@@ -533,7 +618,8 @@ def dashboard():
                          expenses=expenses,
                          expenses_today=expenses_today,
                          expenses_by_date=expenses_by_date,
-                         today=today)
+                         today=today,
+                         business=business_info)
 
 # ====================== ADD ENTRY ROUTES ======================
 
