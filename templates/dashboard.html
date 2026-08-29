@@ -3,87 +3,87 @@
 {% block title %}Dashboard - {{ business.name }} Record Book{% endblock %}
 
 {% block content %}
-<div class="d-flex align-items-center mb-4">
-    <h4 class="fw-bold mb-0">
+<div class="d-flex align-items-center mb-3">
+    <h5 class="fw-bold mb-0">
         <i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard
-    </h4>
+    </h5>
     <span class="badge bg-primary ms-3">{{ today.strftime('%B %d, %Y') }}</span>
 </div>
 
-<!-- ===== CAPITAL STAT CARDS (Global - Same for all users) ===== -->
-<div class="row g-3 mb-4">
+<!-- ===== CAPITAL STAT CARDS - VERY SMALL ===== -->
+<div class="row g-1 mb-2">
     <div class="col-md-4 col-sm-12">
-        <div class="stat-card stat-blue">
+        <div class="stat-card stat-blue p-2">
             <div class="d-flex justify-content-between align-items-start">
-                <span class="stat-label">Today's Capital</span>
-                <i class="bi bi-coin stat-icon"></i>
+                <span class="stat-label" style="font-size: 0.6rem;">Today's Capital</span>
+                <i class="bi bi-coin stat-icon" style="font-size: 0.9rem;"></i>
             </div>
-            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_capital_today) }}</div>
-            <div class="stat-sub">Capital added today</div>
+            <div class="stat-value" style="font-size: 0.85rem; font-weight: 600;">&#8358;{{ "{:,.2f}".format(total_capital_today) }}</div>
+            <div class="stat-sub" style="font-size: 0.55rem;">Capital added today</div>
         </div>
     </div>
     <div class="col-md-4 col-sm-12">
-        <div class="stat-card stat-royal">
+        <div class="stat-card stat-royal p-2">
             <div class="d-flex justify-content-between align-items-start">
-                <span class="stat-label">This Month's Capital</span>
-                <i class="bi bi-calendar3 stat-icon"></i>
+                <span class="stat-label" style="font-size: 0.6rem;">This Month's Capital</span>
+                <i class="bi bi-calendar3 stat-icon" style="font-size: 0.9rem;"></i>
             </div>
-            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_capital_month) }}</div>
-            <div class="stat-sub">{{ today.strftime('%B %Y') }}</div>
+            <div class="stat-value" style="font-size: 0.85rem; font-weight: 600;">&#8358;{{ "{:,.2f}".format(total_capital_month) }}</div>
+            <div class="stat-sub" style="font-size: 0.55rem;">{{ today.strftime('%B %Y') }}</div>
         </div>
     </div>
     <div class="col-md-4 col-sm-12">
-        <div class="stat-card stat-slate">
+        <div class="stat-card stat-slate p-2">
             <div class="d-flex justify-content-between align-items-start">
-                <span class="stat-label">Total Capital (All Time)</span>
-                <i class="bi bi-bank stat-icon"></i>
+                <span class="stat-label" style="font-size: 0.6rem;">Total Capital (All Time)</span>
+                <i class="bi bi-bank stat-icon" style="font-size: 0.9rem;"></i>
             </div>
-            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_capital_all_time) }}</div>
-            <div class="stat-sub">Lifetime capital</div>
+            <div class="stat-value" style="font-size: 0.85rem; font-weight: 600;">&#8358;{{ "{:,.2f}".format(total_capital_all_time) }}</div>
+            <div class="stat-sub" style="font-size: 0.55rem;">Lifetime capital</div>
         </div>
     </div>
 </div>
 
-<!-- ===== PRODUCTION & EXPENSE STATS (User-specific) ===== -->
-<div class="row g-3 mb-4">
+<!-- ===== PRODUCTION & EXPENSE STATS - VERY SMALL ===== -->
+<div class="row g-1 mb-3">
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #059669, #10b981);">
+        <div class="stat-card p-2" style="background: linear-gradient(135deg, #059669, #10b981);">
             <div class="d-flex justify-content-between align-items-start">
-                <span class="stat-label">Today's Production</span>
-                <i class="bi bi-box-seam stat-icon"></i>
+                <span class="stat-label" style="font-size: 0.6rem;">Today's Production</span>
+                <i class="bi bi-box-seam stat-icon" style="font-size: 0.9rem;"></i>
             </div>
-            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_production_today) }}</div>
-            <div class="stat-sub">Your revenue today</div>
+            <div class="stat-value" style="font-size: 0.85rem; font-weight: 600;">&#8358;{{ "{:,.2f}".format(total_production_today) }}</div>
+            <div class="stat-sub" style="font-size: 0.55rem;">Your revenue today</div>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #dc2626, #ef4444);">
+        <div class="stat-card p-2" style="background: linear-gradient(135deg, #dc2626, #ef4444);">
             <div class="d-flex justify-content-between align-items-start">
-                <span class="stat-label">Today's Expenses</span>
-                <i class="bi bi-cart-dash stat-icon"></i>
+                <span class="stat-label" style="font-size: 0.6rem;">Today's Expenses</span>
+                <i class="bi bi-cart-dash stat-icon" style="font-size: 0.9rem;"></i>
             </div>
-            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_expense_today) }}</div>
-            <div class="stat-sub">Your costs today</div>
+            <div class="stat-value" style="font-size: 0.85rem; font-weight: 600;">&#8358;{{ "{:,.2f}".format(total_expense_today) }}</div>
+            <div class="stat-sub" style="font-size: 0.55rem;">Your costs today</div>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #7c3aed, #8b5cf6);">
+        <div class="stat-card p-2" style="background: linear-gradient(135deg, #7c3aed, #8b5cf6);">
             <div class="d-flex justify-content-between align-items-start">
-                <span class="stat-label">This Month's Production</span>
-                <i class="bi bi-calendar-range stat-icon"></i>
+                <span class="stat-label" style="font-size: 0.6rem;">This Month's Production</span>
+                <i class="bi bi-calendar-range stat-icon" style="font-size: 0.9rem;"></i>
             </div>
-            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_production_month) }}</div>
-            <div class="stat-sub">{{ today.strftime('%B %Y') }}</div>
+            <div class="stat-value" style="font-size: 0.85rem; font-weight: 600;">&#8358;{{ "{:,.2f}".format(total_production_month) }}</div>
+            <div class="stat-sub" style="font-size: 0.55rem;">{{ today.strftime('%B %Y') }}</div>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+        <div class="stat-card p-2" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
             <div class="d-flex justify-content-between align-items-start">
-                <span class="stat-label">This Month's Expenses</span>
-                <i class="bi bi-calendar-range stat-icon"></i>
+                <span class="stat-label" style="font-size: 0.6rem;">This Month's Expenses</span>
+                <i class="bi bi-calendar-range stat-icon" style="font-size: 0.9rem;"></i>
             </div>
-            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_expense_month) }}</div>
-            <div class="stat-sub">{{ today.strftime('%B %Y') }}</div>
+            <div class="stat-value" style="font-size: 0.85rem; font-weight: 600;">&#8358;{{ "{:,.2f}".format(total_expense_month) }}</div>
+            <div class="stat-sub" style="font-size: 0.55rem;">{{ today.strftime('%B %Y') }}</div>
         </div>
     </div>
 </div>
