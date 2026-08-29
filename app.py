@@ -193,7 +193,7 @@ class ProductionForm(FlaskForm):
     date = DateField('Date', validators=[DataRequired()], default=date.today)
     amount = FloatField('Amount (₦)', validators=[DataRequired(), NumberRange(min=0.01)])
     note = TextAreaField('Note (Optional)')
-    submit = SubmitField('Add Production')
+    submit = SubmitField('Update Production')
 
 class ExpenseForm(FlaskForm):
     date = DateField('Date', validators=[DataRequired()], default=date.today)
@@ -634,6 +634,44 @@ def add_entry():
                          production_form=production_form, 
                          expense_form=expense_form,
                          today=today)
+
+# ====================== PRODUCTION MANAGEMENT ROUTES ======================
+
+@app.route('/edit-production/<int:production_id>', methods=['GET', 'POST'])
+@login_required
+def edit_production(production_id):
+    production = Production.query.get_or_404(production_id)
+    
+    # Check if user owns this production
+    if production.user_id != current_user.id:
+        flash('You are not authorized to edit this production.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    form = ProductionForm(obj=production)
+    
+    if form.validate_on_submit():
+        production.date = form.date.data
+        production.amount = form.amount.data
+        production.note = form.note.data
+        db.session.commit()
+        flash('Production updated successfully!', 'success')
+        return redirect(request.referrer or url_for('dashboard'))
+    
+    return render_template('edit_production.html', form=form, production=production)
+
+@app.route('/delete-production/<int:production_id>', methods=['POST'])
+@login_required
+def delete_production(production_id):
+    production = Production.query.get_or_404(production_id)
+    
+    # Check if user owns this production
+    if production.user_id != current_user.id:
+        return jsonify({'success': False, 'error': 'You are not authorized to delete this production.'}), 403
+    
+    db.session.delete(production)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'Production deleted successfully!'})
 
 # ====================== EXPENSE MANAGEMENT ROUTES ======================
 
