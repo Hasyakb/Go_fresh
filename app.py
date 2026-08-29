@@ -135,6 +135,21 @@ class Production(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+class ProductionHistory(db.Model):
+    __tablename__ = 'production_history'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    production_id = db.Column(db.Integer, db.ForeignKey('production.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    note = db.Column(db.String(200))
+    edited_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    edited_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    production = db.relationship('Production', backref='history', lazy=True)
+    editor = db.relationship('User', foreign_keys=[edited_by], lazy=True)
+
+
 class Expense(db.Model):
     __tablename__ = 'expense'
     
@@ -650,6 +665,17 @@ def edit_production(production_id):
     form = ProductionForm(obj=production)
     
     if form.validate_on_submit():
+        # Save current state to history before updating
+        history = ProductionHistory(
+            production_id=production.id,
+            date=production.date,
+            amount=production.amount,
+            note=production.note,
+            edited_by=current_user.id
+        )
+        db.session.add(history)
+        
+        # Update production
         production.date = form.date.data
         production.amount = form.amount.data
         production.note = form.note.data
@@ -657,7 +683,12 @@ def edit_production(production_id):
         flash('Production updated successfully!', 'success')
         return redirect(request.referrer or url_for('dashboard'))
     
-    return render_template('edit_production.html', form=form, production=production)
+    # Get history for this production
+    history = ProductionHistory.query.filter_by(
+        production_id=production.id
+    ).order_by(ProductionHistory.edited_at.desc()).all()
+    
+    return render_template('edit_production.html', form=form, production=production, history=history)
 
 @app.route('/delete-production/<int:production_id>', methods=['POST'])
 @login_required
@@ -924,134 +955,81 @@ def admin_summary():
     today = date.today()
     now = datetime.now()
     
+    # Get search date from query parameter
+    search_date_str = request.args.get('search_date')
+    if search_date_str:
+        try:
+            display_date = datetime.strptime(search_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            display_date = today
+    else:
+        display_date = today
+    
     # If super admin, show all data
     if current_user.is_super_admin:
-        total_productions_all = db.session.query(func.sum(Production.amount)).scalar() or 0
-        total_expenses_all = db.session.query(func.sum(Expense.cost)).scalar() or 0
-        total_capital_all = db.session.query(func.sum(Capital.amount)).scalar() or 0
-        total_labour_all = db.session.query(func.sum(Labour.amount)).scalar() or 0
+        # Day totals
+        total_productions_day = db.session.query(func.sum(Production.amount)).filter(Production.date == display_date).scalar() or 0
+        total_expenses_day = db.session.query(func.sum(Expense.cost)).filter(Expense.date == display_date).scalar() or 0
+        total_capital_day = db.session.query(func.sum(Capital.amount)).filter(Capital.date == display_date).scalar() or 0
+        total_labour_day = db.session.query(func.sum(Labour.amount)).filter(Labour.date == display_date).scalar() or 0
         
-        total_productions_today = db.session.query(func.sum(Production.amount)).filter(Production.date == today).scalar() or 0
-        total_expenses_today = db.session.query(func.sum(Expense.cost)).filter(Expense.date == today).scalar() or 0
-        total_capital_today = db.session.query(func.sum(Capital.amount)).filter(Capital.date == today).scalar() or 0
-        total_labour_today = db.session.query(func.sum(Labour.amount)).filter(Labour.date == today).scalar() or 0
-        
-        total_productions_month = db.session.query(func.sum(Production.amount)).filter(
-            extract('year', Production.date) == today.year,
-            extract('month', Production.date) == today.month
-        ).scalar() or 0
-        total_expenses_month = db.session.query(func.sum(Expense.cost)).filter(
-            extract('year', Expense.date) == today.year,
-            extract('month', Expense.date) == today.month
-        ).scalar() or 0
-        total_capital_month = db.session.query(func.sum(Capital.amount)).filter(
-            extract('year', Capital.date) == today.year,
-            extract('month', Capital.date) == today.month
-        ).scalar() or 0
-        total_labour_month = db.session.query(func.sum(Labour.amount)).filter(
-            extract('year', Labour.date) == today.year,
-            extract('month', Labour.date) == today.month
-        ).scalar() or 0
-        
-        expense_breakdown = db.session.query(
+        # Day breakdowns
+        expense_breakdown_day = db.session.query(
             Expense.item, 
             func.sum(Expense.cost).label('total_cost'),
             func.count(Expense.id).label('count')
-        ).group_by(Expense.item).order_by(Expense.item).all()
+        ).filter(Expense.date == display_date).group_by(Expense.item).order_by(Expense.item).all()
         
-        capitals_by_date = db.session.query(
-            Capital.date,
-            func.sum(Capital.amount).label('total_amount')
-        ).group_by(Capital.date).order_by(Capital.date.desc()).all()
-        
-        recent_productions = Production.query.order_by(Production.date.desc()).limit(10).all()
-        recent_expenses = Expense.query.order_by(Expense.date.desc()).limit(10).all()
-        recent_capital = Capital.query.order_by(Capital.date.desc()).limit(10).all()
+        capitals_day = Capital.query.filter(Capital.date == display_date).order_by(Capital.date.desc()).all()
+        productions_day = Production.query.filter(Production.date == display_date).order_by(Production.date.desc()).all()
     else:
         # Regular admin - filter by their business
         business_filter = User.business_id == current_user.business_id
         
-        total_productions_all = db.session.query(func.sum(Production.amount)).join(User).filter(business_filter).scalar() or 0
-        total_expenses_all = db.session.query(func.sum(Expense.cost)).join(User).filter(business_filter).scalar() or 0
-        total_capital_all = db.session.query(func.sum(Capital.amount)).join(User).filter(business_filter).scalar() or 0
-        total_labour_all = db.session.query(func.sum(Labour.amount)).join(User).filter(business_filter).scalar() or 0
-        
-        total_productions_today = db.session.query(func.sum(Production.amount)).join(User).filter(
-            business_filter, Production.date == today
+        total_productions_day = db.session.query(func.sum(Production.amount)).join(User).filter(
+            business_filter, Production.date == display_date
         ).scalar() or 0
-        total_expenses_today = db.session.query(func.sum(Expense.cost)).join(User).filter(
-            business_filter, Expense.date == today
+        total_expenses_day = db.session.query(func.sum(Expense.cost)).join(User).filter(
+            business_filter, Expense.date == display_date
         ).scalar() or 0
-        total_capital_today = db.session.query(func.sum(Capital.amount)).join(User).filter(
-            business_filter, Capital.date == today
+        total_capital_day = db.session.query(func.sum(Capital.amount)).join(User).filter(
+            business_filter, Capital.date == display_date
         ).scalar() or 0
-        total_labour_today = db.session.query(func.sum(Labour.amount)).join(User).filter(
-            business_filter, Labour.date == today
+        total_labour_day = db.session.query(func.sum(Labour.amount)).join(User).filter(
+            business_filter, Labour.date == display_date
         ).scalar() or 0
         
-        total_productions_month = db.session.query(func.sum(Production.amount)).join(User).filter(
-            business_filter,
-            extract('year', Production.date) == today.year,
-            extract('month', Production.date) == today.month
-        ).scalar() or 0
-        total_expenses_month = db.session.query(func.sum(Expense.cost)).join(User).filter(
-            business_filter,
-            extract('year', Expense.date) == today.year,
-            extract('month', Expense.date) == today.month
-        ).scalar() or 0
-        total_capital_month = db.session.query(func.sum(Capital.amount)).join(User).filter(
-            business_filter,
-            extract('year', Capital.date) == today.year,
-            extract('month', Capital.date) == today.month
-        ).scalar() or 0
-        total_labour_month = db.session.query(func.sum(Labour.amount)).join(User).filter(
-            business_filter,
-            extract('year', Labour.date) == today.year,
-            extract('month', Labour.date) == today.month
-        ).scalar() or 0
-        
-        expense_breakdown = db.session.query(
+        expense_breakdown_day = db.session.query(
             Expense.item, 
             func.sum(Expense.cost).label('total_cost'),
             func.count(Expense.id).label('count')
-        ).join(User).filter(business_filter).group_by(Expense.item).order_by(Expense.item).all()
+        ).join(User).filter(
+            business_filter, Expense.date == display_date
+        ).group_by(Expense.item).order_by(Expense.item).all()
         
-        capitals_by_date = db.session.query(
-            Capital.date,
-            func.sum(Capital.amount).label('total_amount')
-        ).join(User).filter(business_filter).group_by(Capital.date).order_by(Capital.date.desc()).all()
+        capitals_day = Capital.query.join(User).filter(
+            business_filter, Capital.date == display_date
+        ).order_by(Capital.date.desc()).all()
         
-        recent_productions = Production.query.join(User).filter(business_filter).order_by(Production.date.desc()).limit(10).all()
-        recent_expenses = Expense.query.join(User).filter(business_filter).order_by(Expense.date.desc()).limit(10).all()
-        recent_capital = Capital.query.join(User).filter(business_filter).order_by(Capital.date.desc()).limit(10).all()
+        productions_day = Production.query.join(User).filter(
+            business_filter, Production.date == display_date
+        ).order_by(Production.date.desc()).all()
     
-    profit_all = total_productions_all - total_capital_all - total_labour_all
-    profit_today = total_productions_today - total_capital_today - total_labour_today
-    profit_month = total_productions_month - total_capital_month - total_labour_month
+    profit_day = total_productions_day - total_capital_day - total_labour_day
     
     return render_template('admin_summary.html',
-                         total_productions_all=total_productions_all,
-                         total_expenses_all=total_expenses_all,
-                         total_capital_all=total_capital_all,
-                         total_labour_all=total_labour_all,
-                         profit_all=profit_all,
-                         total_productions_today=total_productions_today,
-                         total_expenses_today=total_expenses_today,
-                         total_capital_today=total_capital_today,
-                         total_labour_today=total_labour_today,
-                         profit_today=profit_today,
-                         total_productions_month=total_productions_month,
-                         total_expenses_month=total_expenses_month,
-                         total_capital_month=total_capital_month,
-                         total_labour_month=total_labour_month,
-                         profit_month=profit_month,
-                         expense_breakdown=expense_breakdown,
-                         capitals_by_date=capitals_by_date,
-                         recent_productions=recent_productions,
-                         recent_expenses=recent_expenses,
-                         recent_capital=recent_capital,
+                         total_productions_day=total_productions_day,
+                         total_expenses_day=total_expenses_day,
+                         total_capital_day=total_capital_day,
+                         total_labour_day=total_labour_day,
+                         profit_day=profit_day,
+                         expense_breakdown_day=expense_breakdown_day,
+                         capitals_day=capitals_day,
+                         productions_day=productions_day,
+                         display_date=display_date,
                          today=today,
-                         now=now)
+                         now=now,
+                         search_date=search_date_str)
 
 @app.route('/admin/report', methods=['GET', 'POST'])
 @login_required

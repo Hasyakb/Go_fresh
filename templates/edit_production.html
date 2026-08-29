@@ -12,7 +12,8 @@
     </a>
 </div>
 
-<div class="row justify-content-center">
+<div class="row">
+    <!-- Edit Form -->
     <div class="col-md-6">
         <div class="card shadow-sm">
             <div class="card-header bg-success text-white">
@@ -56,6 +57,50 @@
                         </a>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- History -->
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Edit History</h5>
+            </div>
+            <div class="card-body">
+                {% if history %}
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Note</th>
+                                    <th>Edited By</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for h in history %}
+                                    <tr>
+                                        <td>{{ h.date.strftime('%d/%m/%Y') }}</td>
+                                        <td class="money-in">₦{{ "{:,.2f}".format(h.amount) }}</td>
+                                        <td class="text-muted">{{ h.note or '-' }}</td>
+                                        <td><small>{{ h.editor.username }}</small></td>
+                                        <td><small>{{ h.edited_at.strftime('%H:%M') }}</small></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-muted small mt-2">
+                        <i class="bi bi-info-circle"></i> Showing {{ history|length }} previous edit(s)
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3 mb-0">
+                        <i class="bi bi-inbox me-1"></i>No edit history for this production.
+                    </p>
+                {% endif %}
             </div>
         </div>
     </div>

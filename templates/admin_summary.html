@@ -18,6 +18,31 @@
     </div>
 </div>
 
+<!-- Date Search -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-search me-2"></i>Search by Date</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('admin_summary') }}" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Select Date</label>
+                <input type="date" name="search_date" class="form-control" value="{{ search_date or today.strftime('%Y-%m-%d') }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i> Search
+                </button>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <a href="{{ url_for('admin_summary') }}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-repeat me-1"></i> Today
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-12">
         <div class="card shadow-sm mb-4 border-primary border-2">
@@ -38,119 +63,39 @@
                     </p>
                     <hr>
                     <h5>Financial Summary</h5>
-                    <p class="text-muted">As of {{ today.strftime('%B %d, %Y') }}</p>
+                    <p class="text-muted">{{ display_date.strftime('%B %d, %Y') }}</p>
                 </div>
 
-                <!-- All Time Summary -->
-                <h5 class="text-primary mb-3"><i class="bi bi-infinity me-1"></i>All Time</h5>
-                <div class="row g-3 mb-3">
-                    <div class="col-md-3 col-6">
-                        <div class="stat-card stat-blue">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <span class="stat-label">Productions</span>
-                                <i class="bi bi-box-seam stat-icon"></i>
-                            </div>
-                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_productions_all) }}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <div class="stat-card stat-watermelon">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <span class="stat-label">Expenses</span>
-                                <i class="bi bi-cart-dash stat-icon"></i>
-                            </div>
-                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_expenses_all) }}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <div class="stat-card stat-royal">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <span class="stat-label">Capital</span>
-                                <i class="bi bi-bank stat-icon"></i>
-                            </div>
-                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_capital_all) }}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <div class="stat-card stat-blush">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <span class="stat-label">Labour</span>
-                                <i class="bi bi-people stat-icon"></i>
-                            </div>
-                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_labour_all) }}</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row mb-4">
-                    <div class="col-md-6 mx-auto">
-                        <div class="stat-card {% if profit_all >= 0 %}stat-blue{% else %}stat-watermelon{% endif %} text-center py-4">
-                            <div class="stat-label"><i class="bi bi-trophy me-1"></i>Overall Profit / Loss</div>
-                            <div class="display-5 fw-bold">
-                                {% if profit_all >= 0 %}+{% endif %}&#8358;{{ "{:,.2f}".format(profit_all) }}
-                            </div>
-                            <small class="stat-sub">Productions &minus; Capital &minus; Labour</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Today's Summary -->
-                <h5 class="text-primary mb-3"><i class="bi bi-sun me-1"></i>Today &middot; {{ today.strftime('%B %d, %Y') }}</h5>
+                <!-- Daily Summary -->
+                <h5 class="text-primary mb-3"><i class="bi bi-sun me-1"></i>{{ display_date.strftime('%B %d, %Y') }}</h5>
                 <div class="row g-3 mb-4">
                     <div class="col-md-3 col-6">
                         <div class="stat-card stat-blue">
                             <div class="stat-label">Productions</div>
-                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_productions_today) }}</div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_productions_day) }}</div>
                         </div>
                     </div>
                     <div class="col-md-3 col-6">
                         <div class="stat-card stat-watermelon">
                             <div class="stat-label">Expenses</div>
-                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_expenses_today) }}</div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_expenses_day) }}</div>
                         </div>
                     </div>
                     <div class="col-md-3 col-6">
                         <div class="stat-card stat-royal">
                             <div class="stat-label">Capital</div>
-                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_capital_today) }}</div>
+                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_capital_day) }}</div>
                         </div>
                     </div>
                     <div class="col-md-3 col-6">
-                        <div class="stat-card {% if profit_today >= 0 %}stat-blue{% else %}stat-watermelon{% endif %}">
+                        <div class="stat-card {% if profit_day >= 0 %}stat-blue{% else %}stat-watermelon{% endif %}">
                             <div class="stat-label">Profit</div>
-                            <div class="stat-value">{% if profit_today >= 0 %}+{% endif %}&#8358;{{ "{:,.2f}".format(profit_today) }}</div>
+                            <div class="stat-value">{% if profit_day >= 0 %}+{% endif %}&#8358;{{ "{:,.2f}".format(profit_day) }}</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Month Summary -->
-                <h5 class="text-info mb-3"><i class="bi bi-calendar-month me-1"></i>This Month &middot; {{ today.strftime('%B %Y') }}</h5>
-                <div class="row g-3 mb-4">
-                    <div class="col-md-3 col-6">
-                        <div class="stat-card stat-blue">
-                            <div class="stat-label">Productions</div>
-                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_productions_month) }}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <div class="stat-card stat-watermelon">
-                            <div class="stat-label">Expenses</div>
-                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_expenses_month) }}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <div class="stat-card stat-royal">
-                            <div class="stat-label">Capital</div>
-                            <div class="stat-value">&#8358;{{ "{:,.2f}".format(total_capital_month) }}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <div class="stat-card {% if profit_month >= 0 %}stat-blue{% else %}stat-watermelon{% endif %}">
-                            <div class="stat-label">Profit</div>
-                            <div class="stat-value">{% if profit_month >= 0 %}+{% endif %}&#8358;{{ "{:,.2f}".format(profit_month) }}</div>
-                        </div>
-                    </div>
-                </div>
-
+                <!-- Daily Breakdowns -->
                 <div class="row g-4">
                     <div class="col-md-6">
                         <div class="card shadow-sm h-100">
@@ -158,9 +103,9 @@
                                 <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Expense Breakdown</h5>
                             </div>
                             <div class="card-body">
-                                {% if expense_breakdown %}
+                                {% if expense_breakdown_day %}
                                     <div class="table-responsive">
-                                        <table class="table table-sm align-middle print-trim">
+                                        <table class="table table-sm align-middle">
                                             <thead>
                                                 <tr>
                                                     <th>Item</th>
@@ -170,14 +115,14 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {% for item in expense_breakdown %}
+                                                {% for item in expense_breakdown_day %}
                                                     <tr>
                                                         <td>{{ item.item }}</td>
                                                         <td><span class="badge bg-secondary">{{ item.count }}</span></td>
                                                         <td>&#8358;{{ "{:,.2f}".format(item.total_cost) }}</td>
                                                         <td>
-                                                            {% if total_expenses_all > 0 %}
-                                                                {{ "%.1f"|format((item.total_cost / total_expenses_all) * 100) }}%
+                                                            {% if total_expenses_day > 0 %}
+                                                                {{ "%.1f"|format((item.total_cost / total_expenses_day) * 100) }}%
                                                             {% else %}
                                                                 0%
                                                             {% endif %}
@@ -186,8 +131,8 @@
                                                 {% endfor %}
                                                 <tr class="table-warning">
                                                     <td><strong>Total</strong></td>
-                                                    <td>{{ expense_breakdown|sum(attribute='count') }}</td>
-                                                    <td><strong>&#8358;{{ "{:,.2f}".format(total_expenses_all) }}</strong></td>
+                                                    <td>{{ expense_breakdown_day|sum(attribute='count') }}</td>
+                                                    <td><strong>&#8358;{{ "{:,.2f}".format(total_expenses_day) }}</strong></td>
                                                     <td><strong>100%</strong></td>
                                                 </tr>
                                             </tbody>
@@ -195,7 +140,7 @@
                                     </div>
                                 {% else %}
                                     <p class="text-muted text-center mb-0 py-3">
-                                        <i class="bi bi-inbox me-1"></i>No expenses recorded yet.
+                                        <i class="bi bi-inbox me-1"></i>No expenses for this day.
                                     </p>
                                 {% endif %}
                             </div>
@@ -205,35 +150,35 @@
                     <div class="col-md-6">
                         <div class="card shadow-sm h-100">
                             <div class="card-header bg-info text-white">
-                                <h5 class="mb-0"><i class="bi bi-coin me-2"></i>Capital by Date</h5>
+                                <h5 class="mb-0"><i class="bi bi-coin me-2"></i>Capital Entries</h5>
                             </div>
                             <div class="card-body">
-                                {% if capitals_by_date %}
+                                {% if capitals_day %}
                                     <div class="table-responsive">
-                                        <table class="table table-sm align-middle print-trim">
+                                        <table class="table table-sm align-middle">
                                             <thead>
                                                 <tr>
-                                                    <th>Date</th>
-                                                    <th>Total Capital</th>
+                                                    <th>Amount</th>
+                                                    <th>Added By</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {% for c in capitals_by_date %}
+                                                {% for c in capitals_day %}
                                                     <tr>
-                                                        <td>{{ c.date.strftime('%B %d, %Y') }}</td>
-                                                        <td>&#8358;{{ "{:,.2f}".format(c.total_amount) }}</td>
+                                                        <td>&#8358;{{ "{:,.2f}".format(c.amount) }}</td>
+                                                        <td>{{ c.admin.username }}</td>
                                                     </tr>
                                                 {% endfor %}
                                                 <tr class="table-success">
                                                     <td><strong>Total</strong></td>
-                                                    <td><strong>&#8358;{{ "{:,.2f}".format(total_capital_all) }}</strong></td>
+                                                    <td><strong>&#8358;{{ "{:,.2f}".format(capitals_day|sum(attribute='amount')) }}</strong></td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                 {% else %}
                                     <p class="text-muted text-center mb-0 py-3">
-                                        <i class="bi bi-inbox me-1"></i>No capital entries recorded yet.
+                                        <i class="bi bi-inbox me-1"></i>No capital entries for this day.
                                     </p>
                                 {% endif %}
                             </div>
@@ -241,113 +186,62 @@
                     </div>
                 </div>
 
-                <!-- Recent Entries -->
-                <div class="row g-4 mt-4 d-print-none">
-                    <div class="col-md-4">
-                        <div class="card shadow-sm h-100">
-                            <div class="card-header bg-success text-white">
-                                <h6 class="mb-0"><i class="bi bi-box-seam me-1"></i>Recent Productions</h6>
-                            </div>
-                            <div class="card-body">
-                                {% if recent_productions %}
-                                    <div class="table-responsive">
-                                        <table class="table table-sm">
-                                            <thead>
-                                                <tr>
-                                                    <th>Date</th>
-                                                    <th>Amount</th>
-                                                    <th>Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for p in recent_productions %}
-                                                    <tr>
-                                                        <td>{{ p.date.strftime('%d/%m') }}</td>
-                                                        <td class="money-in fw-semibold">&#8358;{{ "{:,.2f}".format(p.amount) }}</td>
-                                                        <td>
-                                                            <div class="btn-group btn-group-sm">
-                                                                <a href="{{ url_for('edit_production', production_id=p.id) }}" 
-                                                                   class="btn btn-outline-primary btn-sm" title="Edit">
-                                                                    <i class="bi bi-pencil"></i>
-                                                                </a>
-                                                                <button onclick="deleteProduction({{ p.id }})" 
-                                                                        class="btn btn-outline-danger btn-sm" title="Delete">
-                                                                    <i class="bi bi-trash"></i>
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                {% else %}
-                                    <p class="text-muted text-center mb-0">No productions</p>
-                                {% endif %}
-                            </div>
-                        </div>
+                <!-- Recent Productions for the Day -->
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>Productions for {{ display_date.strftime('%B %d, %Y') }}</h5>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card shadow-sm h-100">
-                            <div class="card-header bg-danger text-white">
-                                <h6 class="mb-0"><i class="bi bi-cart-dash me-1"></i>Recent Expenses</h6>
+                    <div class="card-body">
+                        {% if productions_day %}
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Amount</th>
+                                            <th>Note</th>
+                                            <th>Added By</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for p in productions_day %}
+                                            <tr>
+                                                <td>{{ p.date.strftime('%d/%m/%Y') }}</td>
+                                                <td class="fw-semibold money-in">&#8358;{{ "{:,.2f}".format(p.amount) }}</td>
+                                                <td class="text-muted">{{ p.note or '-' }}</td>
+                                                <td>{{ p.user.username }}</td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ url_for('edit_production', production_id=p.id) }}" 
+                                                           class="btn btn-outline-primary btn-sm" title="Edit">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </a>
+                                                        <button onclick="deleteProduction({{ p.id }})" 
+                                                                class="btn btn-outline-danger btn-sm" title="Delete">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="table-success">
+                                            <td><strong>Total</strong></td>
+                                            <td><strong>&#8358;{{ "{:,.2f}".format(productions_day|sum(attribute='amount')) }}</strong></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
                             </div>
-                            <div class="card-body">
-                                {% if recent_expenses %}
-                                    <div class="table-responsive">
-                                        <table class="table table-sm">
-                                            <thead>
-                                                <tr>
-                                                    <th>Item</th>
-                                                    <th>Cost</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for e in recent_expenses %}
-                                                    <tr>
-                                                        <td>{{ e.item }}</td>
-                                                        <td class="money-out fw-semibold">&#8358;{{ "{:,.2f}".format(e.cost) }}</td>
-                                                    </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                {% else %}
-                                    <p class="text-muted text-center mb-0">No expenses</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card shadow-sm h-100">
-                            <div class="card-header bg-info text-white">
-                                <h6 class="mb-0"><i class="bi bi-coin me-1"></i>Recent Capital</h6>
-                            </div>
-                            <div class="card-body">
-                                {% if recent_capital %}
-                                    <div class="table-responsive">
-                                        <table class="table table-sm">
-                                            <thead>
-                                                <tr>
-                                                    <th>Date</th>
-                                                    <th>Amount</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for c in recent_capital %}
-                                                    <tr>
-                                                        <td>{{ c.date.strftime('%d/%m') }}</td>
-                                                        <td class="money-in fw-semibold">&#8358;{{ "{:,.2f}".format(c.amount) }}</td>
-                                                    </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                {% else %}
-                                    <p class="text-muted text-center mb-0">No capital</p>
-                                {% endif %}
-                            </div>
-                        </div>
+                        {% else %}
+                            <p class="text-muted text-center mb-0 py-3">
+                                <i class="bi bi-inbox me-1"></i>No productions for this day.
+                            </p>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -392,14 +286,9 @@ function deleteProduction(productionId) {
 </script>
 
 <style>
-/* ===== One-page A4 print for the Financial Summary ===== */
 @media print {
     @page { size: A4 portrait; margin: 8mm; }
-
-    /* hide chrome */
     footer, .btn, .no-print, form { display: none !important; }
-
-    /* neutralize screen scaffolding */
     html, body {
         background: #fff !important;
         padding: 0 !important;
@@ -418,22 +307,14 @@ function deleteProduction(productionId) {
         border-radius: 6px !important;
         break-inside: avoid;
     }
-    /* keep the brand colors in the printout */
     .card-header, .stat-card {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
-    .card-header {
-        padding: 4px 8px !important;
-        font-size: 11px !important;
-    }
-    .card-header h5, .card-header h6 { font-size: 11px !important; margin-bottom: 0 !important; }
+    .card-header { padding: 4px 8px !important; font-size: 11px !important; }
     .card-body { padding: 6px 8px !important; }
-
-    /* ---- letterhead ---- */
     .report-header { margin-bottom: 6px !important; }
-    .report-header .gf-logo,
-    .report-header svg {
+    .report-header .gf-logo, .report-header svg {
         width: 34px !important;
         height: 34px !important;
         margin-bottom: 2px !important;
@@ -441,21 +322,10 @@ function deleteProduction(productionId) {
     .report-header h2.display-6 { font-size: 17px !important; margin-bottom: 0 !important; }
     .report-header p { font-size: 9px !important; margin-bottom: 1px !important; }
     .report-header hr { margin: 4px 0 !important; }
-
-    /* ---- section titles ---- */
-    h5.text-primary, h5.text-info {
-        font-size: 11px !important;
-        margin-bottom: 4px !important;
-    }
-
-    /* ---- spacing compression ---- */
     .mb-4 { margin-bottom: 6px !important; }
     .mb-3 { margin-bottom: 4px !important; }
     .mt-4 { margin-top: 6px !important; }
-    .row.g-3, .row.g-4 { --bs-gutter-x: 5px; --bs-gutter-y: 5px; }
-    hr { margin: 4px 0 !important; }
-
-    /* ---- stat cards ---- */
+    .row.g-3 { --bs-gutter-x: 5px; --bs-gutter-y: 5px; }
     .stat-card {
         padding: 4px 7px !important;
         border-radius: 6px !important;
@@ -468,22 +338,9 @@ function deleteProduction(productionId) {
     .stat-label { font-size: 7.5px !important; margin-bottom: 0 !important; }
     .stat-value { font-size: 12px !important; }
     .stat-sub { font-size: 7.5px !important; }
-    .display-5 { font-size: 18px !important; }
-    .stat-card.py-4 { padding-top: 5px !important; padding-bottom: 5px !important; }
-
-    /* ---- tables ---- */
-    .table-responsive {
-        max-height: none !important;
-        overflow: visible !important;
-    }
+    .table-responsive { max-height: none !important; overflow: visible !important; }
     .table { font-size: 9px !important; margin-bottom: 0 !important; }
     .table td, .table th { padding: 1.5px 4px !important; }
-    .table:not(.table-bordered) th { font-size: 7.5px !important; }
-
-    /* trim long tables so everything stays on one page */
-    .print-trim tbody tr:nth-child(n+9) { display: none; }
-
-    /* footer flows normally (no fixed overlap) */
     .report-footer { position: static !important; width: auto !important; margin-top: 4px !important; }
     .report-footer hr { margin: 3px 0 !important; }
 }
