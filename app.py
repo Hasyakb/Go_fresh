@@ -372,7 +372,19 @@ def create_default_admin():
     if User.query.first() is not None:
         return
     
-    # Create default business
+    # Create Super Admin first (without business_id)
+    super_admin = User(
+        username='superadmin',
+        password=generate_password_hash('superadmin123'),
+        is_admin=True,
+        is_super_admin=True,
+        is_active=True,
+        business_id=None
+    )
+    db.session.add(super_admin)
+    db.session.commit()
+    
+    # Create default business with the super admin's ID
     default_business = Business(
         name='GO-FRESH',
         tagline='Milkshake',
@@ -383,25 +395,13 @@ def create_default_admin():
         expense_items=json.dumps(DEFAULT_EXPENSE_ITEMS),
         primary_color='#0000ff',
         secondary_color='#fa4659',
-        created_by=1
+        created_by=super_admin.id
     )
     db.session.add(default_business)
     db.session.commit()
     
-    # Create Super Admin
-    super_admin = User(
-        username='superadmin',
-        password=generate_password_hash('superadmin123'),
-        is_admin=True,
-        is_super_admin=True,
-        is_active=True,
-        business_id=default_business.id
-    )
-    db.session.add(super_admin)
-    db.session.commit()
-    
-    # Update business created_by
-    default_business.created_by = super_admin.id
+    # Update super admin with business_id
+    super_admin.business_id = default_business.id
     db.session.commit()
     
     # Create regular admin
